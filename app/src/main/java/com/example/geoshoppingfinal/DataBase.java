@@ -20,6 +20,48 @@ public class DataBase {
         helper = new DataBaseHelper(context);
     }
 
+    //UPDATE Item
+    public boolean updateItem(Item item){
+        try{
+            db = helper.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put("name", item.getName());
+            values.put("quantity", item.getQuantity());
+            values.put("bought", item.isBought());
+
+            int result = db.update("List", values, "id = ?", new String[] { String.valueOf(item.getItemID()) });
+
+            if (result > 0) {
+                return true;
+            }
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+        return false;
+    }
+
+    //DELETE FROM DATABASE
+    public boolean deleteItem(Item item){
+        try{
+            db = helper.getWritableDatabase();
+            int result = db.delete("List", "id = ?", new String[] { String.valueOf(item.getItemID()) });
+
+            if (result > 0) {
+                return true;
+            }
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+        return false;
+    }
+
     //SAVE DATA TO DB
     public boolean saveItem(Item item) {
         try {
@@ -61,10 +103,12 @@ public class DataBase {
                 int id = cursor.getInt(0);
                 String name = cursor.getString(1);
                 int quantity = cursor.getInt(2);
+                boolean bought = (cursor.getInt(3) != 0);
 
                 item = new Item();
                 item.setName(name);
                 item.setQuantity(quantity);
+                item.setBought(bought);
                 item.setItemID(id);
 
                 arrayList.add(item);
