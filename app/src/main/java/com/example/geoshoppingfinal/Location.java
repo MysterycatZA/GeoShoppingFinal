@@ -8,7 +8,7 @@ public class Location {
     private int locationID;
 
     public Location(){
-        this.setGeofenced(false);
+        this.setGeofenced(true);
         this.setLocationID(-1);
     }
 
@@ -16,7 +16,7 @@ public class Location {
         this.setName(name);
         this.setLatitude(latitude);
         this.setLongitude(longitude);
-        this.setGeofenced(false);
+        this.setGeofenced(true);
         this.setLocationID(-1);
     }
 
