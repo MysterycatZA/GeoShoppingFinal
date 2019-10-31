@@ -89,8 +89,49 @@ public class DataBase {
         return false;
     }
 
+    public boolean checkLocationExist(Location location){
+        try {
+            db = helper.getWritableDatabase();
+
+            //Cursor cursor = db.rawQuery("SELECT * FROM Location Where name like '" + location.getName() + "'",null);
+            if(db.query("Location", new String[] {"id","name"},"name LIKE '?'", new String[]{location.getName()+"%"}, null, null, null).getCount() > 0){
+                return true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return false;
+    }
+
+    public int retrieveLocationID(Location location){
+        int id = 0;
+        try {
+            db = helper.getWritableDatabase();
+            String []columns = {"id", "name"};
+            String []selectionArgs = {location.getName() + "%"};
+            Cursor cursor = db.query("Location", columns,"name LIKE ?",selectionArgs,null,null,null);
+            //Cursor cursor = db.query("Location", new String[] {"id","name"},"name LIKE '?'", new String[]{location.getName()+"%"}, null, null, null);
+            while (cursor.moveToNext())
+            {
+                id = cursor.getInt(0);
+
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return id;
+    }
+
     //Relieving locations from the SQLlite Database
-    public ArrayList<Location> retrieveLocation() {
+    public ArrayList<Location> retrieveLocations() {
         ArrayList<Location> arrayList = new ArrayList<>();
 
         try {
