@@ -4,12 +4,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Bundle;
 
-import com.example.geoshoppingfinal.ui.home.HomeFragment;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -19,21 +16,13 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import android.view.MenuItem;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.view.GravityCompat;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
@@ -49,7 +38,6 @@ import android.view.Menu;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity{
     private AppBarConfiguration mAppBarConfiguration;
@@ -58,9 +46,21 @@ public class MainActivity extends AppCompatActivity{
     private GeofencingClient geofencingClient;
     private PendingIntent geofencePendingIntent;
     private ArrayList<Geofence> geofences;
-    //Variables for duration of geofence and its radius
+    //Constants
     private static final float GEOFENCE_RADIUS = 250.0f; // in meters
     private static final String CHANNEL_ID = "Geofence";
+    private static final int REQUEST_CODE_PLACE = 1;
+    private static final int REQUEST_CODE_ITEM = 2;
+
+    public FragmentRefreshListener getFragmentRefreshListener() {
+        return fragmentRefreshListener;
+    }
+
+    public void setFragmentRefreshListener(FragmentRefreshListener fragmentRefreshListener) {
+        this.fragmentRefreshListener = fragmentRefreshListener;
+    }
+
+    private FragmentRefreshListener fragmentRefreshListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,8 +95,28 @@ public class MainActivity extends AppCompatActivity{
                 return result;
             }
         });
-
+        FloatingActionButton fab = this.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addItem();
+            }
+        });
         checkForNotification();
+        DataBase dataBase = new DataBase(this);
+        dataBase.setupItem();
+    }
+
+    public interface FragmentRefreshListener{
+        void onRefresh();
+    }
+
+    //Method that opens link shop activity from the card adapter
+    public void addItem(){
+        Intent intent = new Intent(this, AddItemActivity.class);
+/*        intent.putExtra("shopListID", id);
+        intent.putExtra("shopListName", shoppingLists.get(position).getName());*/
+        startActivityForResult(intent, REQUEST_CODE_ITEM);
     }
 
     private void checkForNotification(){
@@ -133,7 +153,7 @@ public class MainActivity extends AppCompatActivity{
 
         try {
             Intent placeIntent = builder.build(this);
-            startActivityForResult(placeIntent, 1);
+            startActivityForResult(placeIntent, REQUEST_CODE_PLACE);
         }
         catch (Exception ex) {
             Toast.makeText(this, "Google Play services is not available...", Toast.LENGTH_SHORT).show();
@@ -143,7 +163,7 @@ public class MainActivity extends AppCompatActivity{
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if ((requestCode == 1) && (resultCode == RESULT_OK)) {
+        if ((requestCode == REQUEST_CODE_PLACE) && (resultCode == RESULT_OK)) {
             Place place = PingPlacePicker.getPlace(data);
             if (place != null) {
                 DataBase dataBase = new DataBase(this);
@@ -155,6 +175,18 @@ public class MainActivity extends AppCompatActivity{
                 } else {
                     Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
                 }
+            }
+        }
+        else if((requestCode == REQUEST_CODE_ITEM) && (resultCode == RESULT_OK)){
+
+            Item item = new Item(data.getStringExtra("name"), data.getIntExtra("quantity", -1));
+            if (new DataBase(this).saveListItem(item)) {
+                Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
+                if(getFragmentRefreshListener()!= null){
+                    getFragmentRefreshListener().onRefresh();
+                }
+            } else {
+                Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
             }
         }
     }

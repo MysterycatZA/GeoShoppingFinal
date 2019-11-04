@@ -42,7 +42,7 @@ public class DialogBox extends DialogFragment {
     public AlertDialog.Builder buildStandardDialog(){   //Method that builds an alert dialog with 2 buttons
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_add_item, null);
-        final Spinner spinner = (Spinner) view.findViewById(R.id.itemQty);                 //Getting quantity from edit text
+/*        final Spinner spinner = (Spinner) view.findViewById(R.id.itemQty);                 //Getting quantity from edit text
 
         spinner.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, quantity));
         builder.setView(view)
@@ -58,7 +58,7 @@ public class DialogBox extends DialogFragment {
                     public void onClick(DialogInterface dialog, int id) {           //No button
                         dialog.dismiss();
                     }
-                });
+                });*/
         return builder;
     }
 }

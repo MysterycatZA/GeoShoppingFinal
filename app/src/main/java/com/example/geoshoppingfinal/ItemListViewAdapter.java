@@ -85,7 +85,7 @@ public class ItemListViewAdapter extends BaseAdapter {
         // set cheek mark drawable and set checked property to false
                     DataBase dataBase = new DataBase(context);
                     item.setBought(false);
-                    if(dataBase.updateItem(item)){
+                    if(dataBase.updateListItem(item)){
                         simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_off_holo);
                         simpleCheckedTextView.setChecked(false);
                         data.get(position).setBought(false);
@@ -94,7 +94,7 @@ public class ItemListViewAdapter extends BaseAdapter {
             // set cheek mark drawable and set checked property to true
                     item.setBought(true);
                     DataBase dataBase = new DataBase(context);
-                    if(dataBase.updateItem(item)){
+                    if(dataBase.updateListItem(item)){
                         simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_on_holo);
                         simpleCheckedTextView.setChecked(true);
                         data.get(position).setBought(true);
@@ -112,7 +112,7 @@ public class ItemListViewAdapter extends BaseAdapter {
                 builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {           //Yes
                         DataBase dataBase = new DataBase(context);
-                        if(dataBase.deleteItem(item)){
+                        if(dataBase.deleteListItem(item)){
                             delete(position);
                             dialog.dismiss();
                         }

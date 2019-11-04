@@ -1,5 +1,6 @@
 package com.example.geoshoppingfinal;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -25,8 +26,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         try
         {
-            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_ITEM));
+            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_LIST));
             db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_LOCATION));
+            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_ITEM));
         }catch (SQLException e)
         {
             e.printStackTrace();
@@ -39,9 +41,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
         try {
             db.execSQL("DROP TABLE IF EXISTS List");
-            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_ITEM));
+            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_LIST));
             db.execSQL("DROP TABLE IF EXISTS Location");
             db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_LOCATION));
+            db.execSQL("DROP TABLE IF EXISTS Item");
+            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_ITEM));
 
         }catch (SQLException e)
         {
