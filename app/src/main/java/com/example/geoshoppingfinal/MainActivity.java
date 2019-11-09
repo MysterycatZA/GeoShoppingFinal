@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 
+import com.example.geoshoppingfinal.ui.ItemList;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -168,25 +169,45 @@ public class MainActivity extends AppCompatActivity{
             if (place != null) {
                 DataBase dataBase = new DataBase(this);
                 Location location = new Location(place.getName(), place.getLatLng().latitude, place.getLatLng().longitude);
-                if (dataBase.saveLocation(location)) { //!dataBase.checkLocationExist(location) &&
-                    Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
-                    createGeofence(place.getLatLng(), dataBase.retrieveLocationID(location) + "");
-                    addGeofence();
-                } else {
-                    Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
+                if(!dataBase.checkLocationExist(location)) {
+                    int id = dataBase.saveLocation(location);
+                    if (id != 0) {
+                        Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
+                        createGeofence(place.getLatLng(), id + "");
+                        addGeofence();
+                    } else {
+                        Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else {
+                    Toast.makeText(this, "Place already geofenced!", Toast.LENGTH_SHORT).show();
                 }
             }
         }
         else if((requestCode == REQUEST_CODE_ITEM) && (resultCode == RESULT_OK)){
-
-            Item item = new Item(data.getStringExtra("name"), data.getIntExtra("quantity", -1));
-            if (new DataBase(this).saveListItem(item)) {
-                Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
-                if(getFragmentRefreshListener()!= null){
-                    getFragmentRefreshListener().onRefresh();
+            ItemList item = new ItemList(data.getIntExtra("quantity", -1), data.getIntExtra("id", -1));
+            DataBase db = new DataBase(this);
+            int values[] = db.checkItemExist(item.getItemID());
+            if(values[0] == 0){
+                if(db.saveListItem(item)){
+                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+                    if(getFragmentRefreshListener()!= null){
+                        getFragmentRefreshListener().onRefresh();
+                    }
                 }
-            } else {
-                Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
+                else {
+                    Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
+                }
+            }
+            else {
+                item.setItemListID(values[0]);
+                item.setQuantity(item.getQuantity() + values[1]);
+                if (db.updateListItem(item)) {
+                    Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
+                    if(getFragmentRefreshListener()!= null){
+                        getFragmentRefreshListener().onRefresh();
+                    }
+                }
             }
         }
     }

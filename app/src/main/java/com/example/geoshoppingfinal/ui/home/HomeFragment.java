@@ -38,7 +38,7 @@ public class HomeFragment extends Fragment{
             }
         });*/
         HomeViewModel model = ViewModelProviders.of(getActivity()).get(HomeViewModel.class);
-        model.getSelected().observe(this, new Observer<Item>() {
+/*        model.getSelected().observe(this, new Observer<Item>() {
             @Override
             public void onChanged(@Nullable Item item) {
                 if (new DataBase(getActivity()).saveListItem(item)) {
@@ -48,7 +48,7 @@ public class HomeFragment extends Fragment{
                 }
                 loadData();
             }
-        });
+        });*/
 
         ((MainActivity)getActivity()).setFragmentRefreshListener(new MainActivity.FragmentRefreshListener() {
             @Override

@@ -9,6 +9,8 @@ import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 import android.widget.ImageView;
 
+import com.example.geoshoppingfinal.ui.ItemList;
+
 import java.util.ArrayList;
 
 import androidx.appcompat.app.AlertDialog;
@@ -19,11 +21,11 @@ import androidx.appcompat.app.AlertDialog;
 //Method for handling list view for displaying items
 public class ItemListViewAdapter extends BaseAdapter {
     //Declaration and Initialisation
-    private ArrayList<Item> data;                       //Array list of items
+    private ArrayList<ItemList> data;                       //Array list of items
     private Context context;                            //Context of passed activity
     private static LayoutInflater inflater = null;         //Layout inflater
     //Constructor
-    public ItemListViewAdapter(Context context, ArrayList<Item> data) {
+    public ItemListViewAdapter(Context context, ArrayList<ItemList> data) {
         this.context = context;
         this.data = data;
         inflater = (LayoutInflater) context
@@ -46,7 +48,7 @@ public class ItemListViewAdapter extends BaseAdapter {
     }
 
     //Method for adding an item to the list view
-    public void add(Item item){
+    public void add(ItemList item){
         data.add(item);
         notifyDataSetChanged();
     }
@@ -66,7 +68,7 @@ public class ItemListViewAdapter extends BaseAdapter {
         final CheckedTextView simpleCheckedTextView = (CheckedTextView) view.findViewById(R.id.nameLabel);
         final ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
         // Get the data item
-        final Item item = data.get(position);
+        final ItemList item = data.get(position);
         if(item.isBought()){
             simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_on_holo);
             simpleCheckedTextView.setChecked(true);

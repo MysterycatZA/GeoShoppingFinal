@@ -17,12 +17,13 @@ public class AddItemActivity extends AppCompatActivity
             implements ItemViewAdapter.AddItem{
 
     private ArrayList<Item> list;
+    private ArrayList<Item> searchList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item);
-        sortView();
+        sortView(false, "");
     }
 
     @Override
@@ -46,16 +47,28 @@ public class AddItemActivity extends AppCompatActivity
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                boolean search = true;
+/*                boolean search = true;
                 int i = 0;
                 while(search && i < list.size()){
-                    if(!list.get(i).isSeperator() && list.get(i).getName().equalsIgnoreCase(newText)){
+                    if(!list.get(i).isSeparator() && list.get(i).getName().equalsIgnoreCase(newText)){
                         ItemViewAdapter adapter = new ItemViewAdapter(AddItemActivity.this, list);
                         ListView listView = (ListView) findViewById(R.id.itemView);
                         listView.setAdapter(adapter);
                         search = false;
                     }
                     i++;
+                }*/
+                if(newText != null && !newText.isEmpty()){                                  //If the search text is not null or empty
+                    searchList = new ArrayList<Item>();                                    //Search array list
+                    for(int i = 0; i < list.size(); i++){               //Looping through every anime object in the array list
+                        if(!list.get(i).isSeparator() && list.get(i).getName().toLowerCase().startsWith(newText)){    //If the anime name contains the word of search text, add it to the search array list
+                            searchList.add(list.get(i));
+                        }
+                    }
+                    sortView(true, newText);                                           //Repopulate list with search array list
+                }
+                else{
+                    sortView(false, "");                                           //If there is no text in the search view then reset view
                 }
                 return true;
             }
@@ -65,22 +78,34 @@ public class AddItemActivity extends AppCompatActivity
     }
 
     //Method that opens link shop activity from the card adapter
-    public void sendItem(String name, int quantity){
+    public void sendItem(int quantity, int id){
         Intent intent = new Intent();
-        intent.putExtra("name", name);
         intent.putExtra("quantity", quantity);
+        intent.putExtra("id", id);
         setResult(RESULT_OK, intent);
         finish();
     }
 
 
-    public void sortView(){
+    public void sortView(boolean search, String searchText){
 
-        DataBase db = new DataBase(this);
+        if(search){
+            list = searchList;
 
-        // Creating our custom adapter
-        list = db.retrieveItemsSorted();
-        ItemViewAdapter adapter = new ItemViewAdapter(AddItemActivity.this, list);
+            if(list.size() < 1){
+                Item item = new Item("Click here to add");
+                item.setAddItem(true);
+                list.add(item);
+            }
+        }
+        else{
+            DataBase db = new DataBase(this);
+
+            // Creating our custom adapter
+            list = db.retrieveItemsSorted();
+        }
+
+        ItemViewAdapter adapter = new ItemViewAdapter(AddItemActivity.this, list, searchText);
 
         // Create the list view and bind the adapter
         ListView listView = (ListView) findViewById(R.id.itemView);
