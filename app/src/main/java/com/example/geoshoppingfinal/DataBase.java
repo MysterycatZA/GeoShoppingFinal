@@ -468,13 +468,21 @@ public class DataBase {
     }
 
     //Relieving items from the SQLlite Database
-    public ArrayList<ItemList> retrieveListItems() {
+    public ArrayList<ItemList> retrieveListItems(int sort) {
         ArrayList<ItemList> arrayList = new ArrayList<>();
 
         try {
             db = helper.getWritableDatabase();
-
-            Cursor cursor = db.rawQuery("SELECT List.id, List.itemID, List.quantity, List.bought, Item.name FROM List JOIN Item on List.itemID = Item.id",null);
+            String extra = "";
+            switch (sort){
+                case 1:
+                    extra = " ORDER by Item.name ASC";
+                    break;
+                case 2:
+                    extra = " ORDER by Item.name DESC";
+                    break;
+            }
+            Cursor cursor = db.rawQuery("SELECT List.id, List.itemID, List.quantity, List.bought, Item.name FROM List JOIN Item on List.itemID = Item.id" + extra,null);
 
             ItemList item;
             arrayList.clear();
