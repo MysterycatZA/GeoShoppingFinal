@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
@@ -18,10 +21,21 @@ public class LocationListViewAdapter extends BaseAdapter {
     private ArrayList<Location> data;                       //Array list of items
     private Context context;                            //Context of passed activity
     private static LayoutInflater inflater = null;         //Layout inflater
+    public GeoFenceInterface geoFenceInterface;                                     //Link shop interface
+    private int shopID;
+    private boolean checkLinked;
+
+    public interface GeoFenceInterface {                                     //Interface for sending the position and id of the shopping list back to the main activity
+        void createGeofenceData(LatLng latLng, int id);
+        void removeGeofenceData(int id);
+    }
+
     //Constructor
-    public LocationListViewAdapter(Context context, ArrayList<Location> data) {
+    public LocationListViewAdapter(Context context, ArrayList<Location> data, int shopID, boolean checkLinked) {
         this.context = context;
         this.data = data;
+        this.shopID = shopID;
+        this.checkLinked = checkLinked;
         inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -61,6 +75,7 @@ public class LocationListViewAdapter extends BaseAdapter {
         }
         final CheckedTextView simpleCheckedTextView = (CheckedTextView) view.findViewById(R.id.nameLabel);
         final ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
+        final TextView shopName = view.findViewById(R.id.shopNameLabel);
         // Get the data item
         final Location location = data.get(position);
         if(location.isGeofenced()){
@@ -71,7 +86,8 @@ public class LocationListViewAdapter extends BaseAdapter {
             simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_off_holo);
             simpleCheckedTextView.setChecked(false);
         }
-
+        DataBase dataBase = new DataBase(context);
+        shopName.setText(dataBase.getShopListName(location.getShoppingListID()));
         //Toast.makeText(this, "You selected the place: " + place.getName(), Toast.LENGTH_SHORT).show();
         // Display the data item's properties
         simpleCheckedTextView.setText(location.getName());
@@ -80,22 +96,39 @@ public class LocationListViewAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 if (simpleCheckedTextView.isChecked()) {
-                    // set cheek mark drawable and set checked property to false
-                    DataBase dataBase = new DataBase(context);
-                    location.setGeofenced(false);
-                    if(dataBase.updateLocation(location)){
-                        simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_off_holo);
-                        simpleCheckedTextView.setChecked(false);
-                        data.get(position).setGeofenced(false);
-                    }
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setTitle("Are you sure you want to remove from Geofence?");
+
+                    builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {           //Yes
+                            removeGeofence(location, position);
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {       //No
+                            // User cancelled the dialog
+                            dialog.dismiss();
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
                 } else {
-                    // set cheek mark drawable and set checked property to true
-                    location.setGeofenced(true);
-                    DataBase dataBase = new DataBase(context);
-                    if(dataBase.updateLocation(location)){
-                        simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_on_holo);
-                        simpleCheckedTextView.setChecked(true);
-                        data.get(position).setGeofenced(true);
+                    if(shopID != 0){
+                        if(!data.get(position).isGeofenced()) {
+                            if(!checkLinked) {
+                                addGeofence(shopID, location, position);
+                            }
+                            else {
+                                showError("Only 1 shop allowed to be geofenced at a time");
+                            }
+                        }
+                        else {
+                            showError("Location already linked to another Shopping list");
+                        }
+                    }
+                    else{
+                        showError("No shop to link");
                     }
                 }
             }
@@ -109,8 +142,7 @@ public class LocationListViewAdapter extends BaseAdapter {
 
                 builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {           //Yes
-                        DataBase dataBase = new DataBase(context);
-                        if(dataBase.deleteLocation(location)){
+                        if(removeLocation(location)) {
                             delete(position);
                             dialog.dismiss();
                         }
@@ -127,5 +159,58 @@ public class LocationListViewAdapter extends BaseAdapter {
             }
         });
         return view;
+    }
+
+
+
+    public void addGeofence(int shopID, Location location, int position){
+        DataBase dataBase = new DataBase(context);
+        location.setGeofenced(true);
+        location.setShoppingListID(shopID);
+        if (dataBase.updateLocation(location)) {
+            data.get(position).setGeofenced(true);
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            geoFenceInterface  = (GeoFenceInterface) context;
+            geoFenceInterface.createGeofenceData(latLng, location.getLocationID());
+            notifyDataSetChanged();
+        }
+    }
+
+    public boolean removeLocation(Location location){
+        DataBase dataBase = new DataBase(context);
+        if(dataBase.deleteLocation(location)){
+            geoFenceInterface  = (GeoFenceInterface) context;
+            geoFenceInterface.removeGeofenceData(location.getLocationID());
+            return true;
+        }
+
+        return false;
+    }
+
+    public void removeGeofence(Location location, int position){
+        DataBase dataBase = new DataBase(context);
+        location.setGeofenced(false);
+        location.setShoppingListID(-1);
+        if (dataBase.updateLocation(location)) {
+            data.get(position).setGeofenced(false);
+            geoFenceInterface  = (GeoFenceInterface) context;
+            geoFenceInterface.removeGeofenceData(location.getLocationID());
+            notifyDataSetChanged();
+        }
+    }
+
+    public void showError(String message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context); //Alerting user that the location is already linked
+
+        builder.setMessage(message)
+                .setTitle("Error");
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }

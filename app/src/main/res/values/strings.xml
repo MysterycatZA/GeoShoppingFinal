@@ -8,17 +8,23 @@
     <string name="action_asc">Ascending</string>
     <string name="action_desc">Descending</string>
 
-    <string name="menu_home">Shopping List</string>
+    <string name="menu_home">Shopping Lists</string>
     <string name="menu_gallery">Add Shop</string>
     <string name="menu_slideshow">Shop List</string>
     <string name="menu_tools">Help</string>
     <string name="menu_share">Share</string>
-    <string name="menu_send">Send</string>
-    <string name="CREATE_TABLE_LOCATION">CREATE TABLE Location(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL, geofenced INTEGER DEFAULT 0);</string>
-    <string name="CREATE_TABLE_LIST">CREATE TABLE List(id INTEGER PRIMARY KEY AUTOINCREMENT, itemID INTEGER NOT NULL, quantity INTEGER NOT NULL, bought INTEGER DEFAULT 0);</string>
+    <string name="menu_send">Shopping List</string>
+    <string name="CREATE_TABLE_LOCATION">CREATE TABLE Location(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL, geofenced INTEGER DEFAULT 0, shopID INTEGER NULL);</string>
+    <string name="CREATE_TABLE_LIST">CREATE TABLE List(id INTEGER PRIMARY KEY AUTOINCREMENT, itemID INTEGER NOT NULL, quantity INTEGER NOT NULL, bought INTEGER DEFAULT 0, shopID INTEGER NOT NULL);</string>
     <string name="CREATE_TABLE_ITEM">CREATE TABLE Item(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL);</string>
+    <string name="CREATE_TABLE_SHOPPING_LIST">CREATE TABLE Shopping(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL);</string>
     <string name="geofence_transition_invalid_type">Invalid Geofence transition type</string>
     <string name="channel_name">Geofence Notification</string>
     <string name="channel_description">Display notifications for geofenced locations</string>
     <string name="ITEM_TABLE">Item</string>
+    <string name="LOCATION_TABLE">Location</string>
+    <string name="LIST_TABLE">List</string>
+    <string name="SHOP_LIST_TABLE">Shopping</string>
+    <string name="ANDROID_API_KEY">AIzaSyAaOSozlNmzZcjQ_8rgnSiZ1CX92wuskus</string>
+    <string name="MAPS_API_KEY">AIzaSyDaDQRoc087nDE5_vfvwOGyYGCNRhNH4s4</string>
 </resources>

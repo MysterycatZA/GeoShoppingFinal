@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -19,11 +20,13 @@ public class AddItemActivity extends AppCompatActivity
 
     private ArrayList<Item> list;
     private ArrayList<Item> searchList;
+    private int shopID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item);
+        shopID = getIntent().getIntExtra("shopListID", -1);
         setTitle("Add Item");
         sortView(false, "");
     }
@@ -81,9 +84,29 @@ public class AddItemActivity extends AppCompatActivity
 
     //Method that opens link shop activity from the card adapter
     public void sendItem(int quantity, int id){
+        //ItemList item = new ItemList(data.getIntExtra("quantity", -1), data.getIntExtra("id", -1), data.getIntExtra("shopID", -1));
+        DataBase db = new DataBase(this);
+        ItemList item = new ItemList(quantity, id, shopID);
+        int values[] = db.checkItemListExist(item.getItemID(), item.getShoppingListID());
+        if(values[0] == 0){
+            if(db.saveListItem(item)){
+                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else {
+            item.setItemListID(values[0]);
+            item.setQuantity(item.getQuantity() + values[1]);
+            if (db.updateListItem(item)) {
+                Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
+            }
+        }
         Intent intent = new Intent();
-        intent.putExtra("quantity", quantity);
+/*        intent.putExtra("quantity", quantity);
         intent.putExtra("id", id);
+        intent.putExtra("shopID", id);*/
         setResult(RESULT_OK, intent);
         finish();
     }

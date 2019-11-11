@@ -6,6 +6,7 @@ public class Location {
     private double longitude;
     private boolean geofenced;
     private int locationID;
+    private int shoppingListID;              //Shop tied to location for geofence
 
     public Location(){
         this.setGeofenced(false);
@@ -58,5 +59,13 @@ public class Location {
 
     public void setLocationID(int locationID) {
         this.locationID = locationID;
+    }
+
+    public int getShoppingListID() {
+        return shoppingListID;
+    }
+
+    public void setShoppingListID(int shoppingListID) {
+        this.shoppingListID = shoppingListID;
     }
 }

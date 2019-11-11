@@ -2,6 +2,7 @@ package com.example.geoshoppingfinal;
 
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -61,15 +62,18 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void sendNotification(String message, Context context){
+        DataBase dataBase = new DataBase(context);
+        String shopName = dataBase.getLocationName(Integer.parseInt(geofenceID));
         Log.i(TAG, "sendNotification: " + message );
         Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra("geofenceID", geofenceID);                      //Adding shoplist id
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+        intent.putExtra("shopID", geofenceID);                      //Adding shoplist id
+        intent.putExtra("notification", "external");                      //Adding shoplist id
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
         // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(Integer.parseInt(geofenceID), createNotification(message, pendingIntent, context));
+        notificationManager.notify(Integer.parseInt(geofenceID), createNotification(shopName, pendingIntent, context));
 
     }
 
@@ -78,7 +82,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 .setSmallIcon(R.drawable.common_google_signin_btn_icon_light)
                 .setColor(Color.GREEN)
                 .setContentTitle("Shop Notification")
-                .setContentText("Click to open shopping list")
+                .setContentText("Click to open " + message + " shopping list")
                 .setContentIntent(notificationPendingIntent)
                 .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND)
                 .setAutoCancel(true)

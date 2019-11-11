@@ -326,7 +326,7 @@ public class ItemViewAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 if (simpleCheckedTextView.isChecked()) {
-        // set cheek mark drawable and set checked property to false
+        // set cheek mark drawable and set total property to false
                     DataBase dataBase = new DataBase(context);
                     item.setBought(false);
                     if(dataBase.updateListItem(item)){
@@ -335,7 +335,7 @@ public class ItemViewAdapter extends BaseAdapter {
                         data.get(position).setBought(false);
                     }
                 } else {
-            // set cheek mark drawable and set checked property to true
+            // set cheek mark drawable and set total property to true
                     item.setBought(true);
                     DataBase dataBase = new DataBase(context);
                     if(dataBase.updateListItem(item)){

@@ -1,47 +1,64 @@
 package com.example.geoshoppingfinal.ui.home;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.EditText;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.geoshoppingfinal.DataBase;
-import com.example.geoshoppingfinal.Item;
-import com.example.geoshoppingfinal.ItemListViewAdapter;
 import com.example.geoshoppingfinal.MainActivity;
+import com.example.geoshoppingfinal.MainViewModel;
 import com.example.geoshoppingfinal.R;
-import com.example.geoshoppingfinal.ui.ItemList;
+import com.example.geoshoppingfinal.ShoppingList;
+import com.example.geoshoppingfinal.ShoppingListViewAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 
-public class HomeFragment extends Fragment{
+public class HomeFragment extends Fragment {
 
-    private ItemListViewAdapter adapter;
-    private ListView listView;
-    private ArrayList<ItemList> list;
+    //private ShoppingListViewAdapter adapter;
+    private RecyclerView recyclerView;                                  //Recycle view for card view
+    private RecyclerView.Adapter adapter;                              //Adapter for card view
+    private RecyclerView.LayoutManager mLayoutManager;                  //Layout manager for card view
+    private ArrayList<ShoppingList> list;
+    private View root;
+    private MainViewModel mainViewModel;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+        mainViewModel =
+                ViewModelProviders.of(getActivity()).get(MainViewModel.class);
+        mainViewModel.addTitle("Shopping Lists");
+        //setHasOptionsMenu(true);
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
-        listView = (ListView) root.findViewById(R.id.itemListView);
+        root = inflater.inflate(R.layout.fragment_home, container, false);
+        recyclerView = (RecyclerView) root.findViewById(R.id.shopping_recycler_view);
+        recyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(mLayoutManager);
         loadData(0);
+        FloatingActionButton fab = getActivity().findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addShopList();
+            }
+        });
 /*        FloatingActionButton fab = getActivity().findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,23 +80,68 @@ public class HomeFragment extends Fragment{
             }
         });*/
 
-        ((MainActivity)getActivity()).setFragmentRefreshListener(new MainActivity.FragmentRefreshListener() {
+/*        ((MainActivity)getActivity()).setFragmentRefreshListener(new MainActivity.FragmentRefreshListener() {
             @Override
             public void onRefresh() {
                 loadData(0);
                 // Refresh Your Fragment
             }
-        });
+        });*/
         return root;
     }
 
+    private void addShopList(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Add Shop List");
+        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View myView = inflater.inflate(R.layout.dialog_add_shop_list, null);
+        builder.setView(myView);
+        final EditText shopName = (EditText) myView.findViewById(R.id.shopName);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {           //Yes
+                if(!shopName.getText().toString().isEmpty()){
+                    DataBase db = new DataBase(getContext());
+                    int itemID = db.saveShopList(new ShoppingList(shopName.getText().toString()));
+                    if(itemID > 0){
+                        loadData(0);
+                        dialog.dismiss();
+                    }
+
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    @Override   //On resume method that holds a click listener that opens item list of specific shopping list when card is clicked
+    public void onResume() {
+        super.onResume();
+        ((ShoppingListViewAdapter) adapter).setOnItemClickListener(new ShoppingListViewAdapter
+                .MyClickListener() {
+            @Override
+            public void onItemClick(int position, View v) {
+
+                ((MainActivity)getActivity()).openShopListFragment(root, list.get(position).getShoppingListID());
+            }
+        });
+    }
+
+/*
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.sort, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
+*/
 
-    @Override
+/*    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
@@ -92,12 +154,12 @@ public class HomeFragment extends Fragment{
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
+    }*/
 
     private void loadData(int sort) {
         DataBase dataBase = new DataBase(getActivity());
-        list = dataBase.retrieveListItems(sort);
-        adapter = new ItemListViewAdapter(getActivity(), list);             //List view displaying items
-        listView.setAdapter(adapter);
+        list = dataBase.retrieveShopList();
+        adapter = new ShoppingListViewAdapter(getContext(), list);             //List view displaying items
+        recyclerView.setAdapter(adapter);
     }
 }

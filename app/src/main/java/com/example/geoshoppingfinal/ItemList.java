@@ -1,4 +1,4 @@
-package com.example.geoshoppingfinal.ui;
+package com.example.geoshoppingfinal;
 
 import com.example.geoshoppingfinal.Item;
 
@@ -8,6 +8,7 @@ public class ItemList extends Item {
     private boolean bought;
     private int itemListID;
     private boolean clearBought;
+    private int shoppingListID;
 
     public ItemList(){
         this.setSeparator(false);
@@ -26,13 +27,14 @@ public class ItemList extends Item {
         this.setClearBought(false);
     }
 
-    public ItemList(int quantity, int id){
+    public ItemList(int quantity, int id, int shoppingListID){
         this.setSeparator(false);
         this.setBought(false);
         this.setQuantity(quantity);
         this.setItemID(id);
         this.setItemListID(-1);
         this.setClearBought(false);
+        this.setShoppingListID(shoppingListID);
     }
 
     public int getQuantity() {
@@ -65,5 +67,13 @@ public class ItemList extends Item {
 
     public void setClearBought(boolean clearBought) {
         this.clearBought = clearBought;
+    }
+
+    public int getShoppingListID() {
+        return shoppingListID;
+    }
+
+    public void setShoppingListID(int shoppingListID) {
+        this.shoppingListID = shoppingListID;
     }
 }

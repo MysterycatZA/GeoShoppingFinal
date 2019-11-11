@@ -6,8 +6,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.example.geoshoppingfinal.ui.ItemList;
-
 import java.util.ArrayList;
 
 public class DataBase {
@@ -73,8 +71,9 @@ public class DataBase {
             values.put("latitude", location.getLatitude());
             values.put("longitude", location.getLongitude());
             values.put("geofenced", location.isGeofenced());
+            values.put("shopID", location.getShoppingListID());
 
-            int result = db.update("Location", values, "id = ?", new String[] { String.valueOf(location.getLocationID()) });
+            int result = db.update(context.getString(R.string.LOCATION_TABLE), values, "id = ?", new String[] { String.valueOf(location.getLocationID()) });
 
             if (result > 0) {
                 return true;
@@ -88,11 +87,53 @@ public class DataBase {
         return false;
     }
 
+    public int getShopListID(int locationID){
+        int shopID = 0;
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT shopID FROM Location where id = " + locationID,null);
+
+            while (cursor.moveToNext())
+            {
+                shopID = cursor.getInt(0);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return shopID;
+    }
+
+    public String getLocationName(int locationID){
+        String name = "";
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT name FROM Location where id = " + locationID,null);
+
+            while (cursor.moveToNext())
+            {
+                name = cursor.getString(0);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return name;
+    }
+
     //DELETE FROM DATABASE
     public boolean deleteLocation(Location location){
         try{
             db = helper.getWritableDatabase();
-            int result = db.delete("Location", "id = ?", new String[] { String.valueOf(location.getLocationID()) });
+            int result = db.delete(context.getString(R.string.LOCATION_TABLE), "id = ?", new String[] { String.valueOf(location.getLocationID()) });
 
             if (result > 0) {
                 return true;
@@ -116,8 +157,9 @@ public class DataBase {
             values.put("latitude", location.getLatitude());
             values.put("longitude", location.getLongitude());
             values.put("geofenced", location.isGeofenced());
+            values.put("shopID", location.getShoppingListID());
 
-            long result = db.insert("Location", "id", values);
+            long result = db.insert(context.getString(R.string.LOCATION_TABLE), "id", values);
             if (result > 0) {
                 return (int)result;
             }
@@ -139,7 +181,7 @@ public class DataBase {
             //db.query("Location", columns,"name LIKE ?",selectionArgs,null,null,null);
             //Cursor cursor = db.rawQuery("SELECT * FROM Location Where name like '" + location.getName() + "'",null);
             //if(db.query("Location", new String[] {"id","name"},"name LIKE '?'", new String[]{location.getName()+"%"}, null, null, null).getCount() > 0){
-            if(db.query("Location", columns,"name LIKE ?",selectionArgs,null,null,null).getCount() > 0){
+            if(db.query(context.getString(R.string.LOCATION_TABLE), columns,"name LIKE ?",selectionArgs,null,null,null).getCount() > 0){
                 return true;
             }
 
@@ -158,7 +200,7 @@ public class DataBase {
             db = helper.getWritableDatabase();
             String []columns = {"id", "name"};
             String []selectionArgs = {location.getName() + "%"};
-            Cursor cursor = db.query("Location", columns,"name LIKE ?",selectionArgs,null,null,null);
+            Cursor cursor = db.query(context.getString(R.string.LOCATION_TABLE), columns,"name LIKE ?",selectionArgs,null,null,null);
             //Cursor cursor = db.query("Location", new String[] {"id","name"},"name LIKE '?'", new String[]{location.getName()+"%"}, null, null, null);
             while (cursor.moveToNext())
             {
@@ -173,6 +215,41 @@ public class DataBase {
         }
 
         return id;
+    }
+
+    //Relieving locations from the SQLlite Database
+    public Location getLocation(int id) {
+        Location location = new Location();
+
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT * FROM Location WHERE id = " + id,null);
+
+            while (cursor.moveToNext())
+            {
+                int locationID = cursor.getInt(0);
+                String name = cursor.getString(1);
+                double latitude = cursor.getDouble(2);
+                double longitude = cursor.getDouble(3);
+                boolean geofenced = (cursor.getInt(4) != 0);
+                int shopListID = cursor.getInt(5);
+
+                location.setName(name);
+                location.setLatitude(latitude);
+                location.setLongitude(longitude);
+                location.setGeofenced(geofenced);
+                location.setLocationID(locationID);
+                location.setShoppingListID(shopListID);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return location;
     }
 
     //Relieving locations from the SQLlite Database
@@ -191,9 +268,10 @@ public class DataBase {
             {
                 int id = cursor.getInt(0);
                 String name = cursor.getString(1);
-                double latitude = cursor.getInt(2);
-                double longitude = cursor.getInt(3);
+                double latitude = cursor.getDouble(2);
+                double longitude = cursor.getDouble(3);
                 boolean geofenced = (cursor.getInt(4) != 0);
+                int shopListID = cursor.getInt(5);
 
                 location = new Location();
                 location.setName(name);
@@ -201,6 +279,7 @@ public class DataBase {
                 location.setLongitude(longitude);
                 location.setGeofenced(geofenced);
                 location.setLocationID(id);
+                location.setShoppingListID(shopListID);
 
                 arrayList.add(location);
             }
@@ -380,11 +459,128 @@ public class DataBase {
         return arrayList;
     }
 
-    public int[] checkItemExist(int id){
+    //UPDATE Item
+    public boolean updateShopList(ShoppingList item){
+        try{
+            db = helper.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put("name", item.getName());
+
+            int result = db.update(context.getString(R.string.SHOP_LIST_TABLE), values, "id = ?", new String[] { String.valueOf(item.getShoppingListID()) });
+
+            if (result > 0) {
+                return true;
+            }
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+        return false;
+    }
+
+    //DELETE FROM DATABASE
+    public boolean deleteShopList(ShoppingList item){
+        try{
+            db = helper.getWritableDatabase();
+            int result = db.delete(context.getString(R.string.SHOP_LIST_TABLE), "id = ?", new String[] { String.valueOf(item.getShoppingListID()) });
+
+            if (result > 0) {
+                return true;
+            }
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+        return false;
+    }
+
+    //SAVE DATA TO DB
+    public int saveShopList(ShoppingList item) {
+        try {
+            db = helper.getWritableDatabase();
+
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("name", item.getName());
+
+            long result = db.insert(context.getString(R.string.SHOP_LIST_TABLE), "id", contentValues);
+            if (result > 0) {
+                return (int)result;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return 0;
+    }
+
+    //Relieving items from the SQLlite Database
+    public String getShopListName(int shopListID) {
+        String shopName = "";
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT name FROM Shopping WHERE id = " + shopListID,null);
+
+            while (cursor.moveToNext())
+            {
+                shopName = cursor.getString(0);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return shopName;
+    }
+
+    //Relieving items from the SQLlite Database
+    public ArrayList<ShoppingList> retrieveShopList() {
+        ArrayList<ShoppingList> arrayList = new ArrayList<>();
+
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT * FROM Shopping",null);
+
+            ShoppingList item;
+            arrayList.clear();
+
+            while (cursor.moveToNext())
+            {
+                int id = cursor.getInt(0);
+                String name = cursor.getString(1);
+
+                item = new ShoppingList();
+                item.setName(name);
+                item.setShoppingListID(id);
+
+                arrayList.add(item);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return arrayList;
+    }
+
+    public int[] checkItemListExist(int itemID, int shopID){
         int[] values = new int[2];
         try {
             db = helper.getWritableDatabase();
-            Cursor cursor = db.rawQuery("SELECT id, quantity FROM List Where itemID = " + id,null);
+            Cursor cursor = db.rawQuery("SELECT id, quantity FROM List Where itemID = " + itemID + " AND shopID = " + shopID,null);
 
             if(cursor.getCount() > 0){
                 while (cursor.moveToNext()) {
@@ -411,7 +607,7 @@ public class DataBase {
             values.put("quantity", item.getQuantity());
             values.put("bought", item.isBought());
 
-            int result = db.update("List", values, "id = ?", new String[] { String.valueOf(item.getItemListID()) });
+            int result = db.update(context.getString(R.string.LIST_TABLE), values, "id = ?", new String[] { String.valueOf(item.getItemListID()) });
 
             if (result > 0) {
                 return true;
@@ -426,10 +622,74 @@ public class DataBase {
     }
 
     //DELETE FROM DATABASE
+    public boolean deleteLinkedShopToList(int shopID){
+        try{
+            db = helper.getWritableDatabase();
+            int result = db.delete(context.getString(R.string.LIST_TABLE), "shopID = ?", new String[] { String.valueOf(shopID) });
+
+            if (result > 0) {
+                return true;
+            }
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+        return false;
+    }
+
+    public int getTotalListItems(int shopID){
+        int count = 0;
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT COUNT(id) FROM List WHERE shopid = " + shopID,null);
+
+            while (cursor.moveToNext())
+            {
+                count = cursor.getInt(0);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return count;
+
+    }
+
+    public int getBoughtCount(int shopID){
+        int count = 0;
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT bought, COUNT(bought) FROM List where shopid = " + shopID + " GROUP BY bought",null);
+
+            while (cursor.moveToNext())
+            {
+                boolean bought = (cursor.getInt(0) != 0);
+                if(bought){
+                    count = cursor.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return count;
+    }
+
+    //DELETE FROM DATABASE
     public boolean deleteListItem(ItemList item){
         try{
             db = helper.getWritableDatabase();
-            int result = db.delete("List", "id = ?", new String[] { String.valueOf(item.getItemListID()) });
+            int result = db.delete(context.getString(R.string.LIST_TABLE), "id = ?", new String[] { String.valueOf(item.getItemListID()) });
 
             if (result > 0) {
                 return true;
@@ -452,8 +712,9 @@ public class DataBase {
             contentValues.put("itemID", item.getItemID());
             contentValues.put("quantity", item.getQuantity());
             contentValues.put("bought", item.isBought());
+            contentValues.put("shopID", item.getShoppingListID());
 
-            long result = db.insert("List", "id", contentValues);
+            long result = db.insert(context.getString(R.string.LIST_TABLE), "id", contentValues);
             if (result > 0) {
                 return true;
             }
@@ -468,7 +729,7 @@ public class DataBase {
     }
 
     //Relieving items from the SQLlite Database
-    public ArrayList<ItemList> retrieveListItems(int sort) {
+    public ArrayList<ItemList> retrieveListItems(int sort, int shopID) {
         ArrayList<ItemList> arrayList = new ArrayList<>();
 
         try {
@@ -482,7 +743,8 @@ public class DataBase {
                     extra = " ORDER by Item.name DESC";
                     break;
             }
-            Cursor cursor = db.rawQuery("SELECT List.id, List.itemID, List.quantity, List.bought, Item.name FROM List JOIN Item on List.itemID = Item.id" + extra,null);
+            //Cursor cursor = db.rawQuery("SELECT List.id, List.itemID, List.quantity, List.bought, List.shopID, Item.name FROM List JOIN Item on List.itemID = Item.id" + extra,null);
+            Cursor cursor = db.rawQuery("SELECT List.id, List.itemID, List.quantity, List.bought, List.shopID, Item.name FROM List JOIN Item on List.itemID = Item.id GROUP by LIst.id HAVING List.shopid = " + shopID + extra,null);
 
             ItemList item;
             arrayList.clear();
@@ -493,13 +755,15 @@ public class DataBase {
                 int itemID = cursor.getInt(1);
                 int quantity = cursor.getInt(2);
                 boolean bought = (cursor.getInt(3) != 0);
-                String name = cursor.getString(4);
+                shopID = cursor.getInt(4);
+                String name = cursor.getString(5);
 
                 item = new ItemList();
                 item.setItemID(itemID);
                 item.setQuantity(quantity);
                 item.setBought(bought);
                 item.setItemListID(id);
+                item.setShoppingListID(shopID);
                 item.setName(name);
 
                 arrayList.add(item);
