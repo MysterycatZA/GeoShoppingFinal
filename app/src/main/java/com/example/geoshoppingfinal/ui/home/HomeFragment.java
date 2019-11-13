@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -34,6 +35,7 @@ public class HomeFragment extends Fragment {
     private ArrayList<ShoppingList> list;
     private View root;
     private MainViewModel mainViewModel;
+    private TextView emptyView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,9 +50,11 @@ public class HomeFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.fragment_home, container, false);
         recyclerView = (RecyclerView) root.findViewById(R.id.shopping_recycler_view);
+        emptyView = (TextView) root.findViewById(R.id.emptyElement);
         recyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(mLayoutManager);
+
         loadData(0);
         FloatingActionButton fab = getActivity().findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -128,9 +132,12 @@ public class HomeFragment extends Fragment {
             @Override
             public void onItemClick(int position, View v) {
 
-                ((MainActivity)getActivity()).openShopListFragment(root, list.get(position).getShoppingListID());
+                ((MainActivity) getActivity()).openShopListFragment(root, list.get(position).getShoppingListID());
             }
         });
+/*        if(list.size() > 0) {
+
+        }*/
     }
 
 /*
@@ -159,7 +166,45 @@ public class HomeFragment extends Fragment {
     private void loadData(int sort) {
         DataBase dataBase = new DataBase(getActivity());
         list = dataBase.retrieveShopList();
+/*        if(list.size() > 0) {
+            adapter = new ShoppingListViewAdapter(getContext(), list);             //List view displaying items
+        }
+        else{
+            adapter = new EmptyShoppingListViewAdapter();
+        }*/
+        if (list.isEmpty()) {
+            recyclerView.setVisibility(View.GONE);
+            emptyView.setVisibility(View.VISIBLE);
+        }
+        else {
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyView.setVisibility(View.GONE);
+        }
         adapter = new ShoppingListViewAdapter(getContext(), list);             //List view displaying items
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                checkEmpty();
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                checkEmpty();
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                super.onItemRangeRemoved(positionStart, itemCount);
+                checkEmpty();
+            }
+
+            void checkEmpty() {
+                emptyView.setVisibility(adapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+            }
+        });
         recyclerView.setAdapter(adapter);
     }
 }

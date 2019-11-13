@@ -2,6 +2,7 @@ package com.example.geoshoppingfinal;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 /**
@@ -23,7 +25,13 @@ public class ShoppingListViewAdapter extends RecyclerView
     private ArrayList<ShoppingList> mDataset;                       //Data set
     private static MyClickListener myClickListener;                //Card listener
     public LinkShops linkShops;                                     //Link shop interface
+    public HandleGeofence handleGeofence;
     private Context context;
+    private DataBase dataBase;
+
+    public interface HandleGeofence{                                     //Interface for sending the position and id of the shopping list back to the main activity
+        void removeGeofenceData(int id);
+    }
 
     public interface LinkShops{                                     //Interface for sending the position and id of the shopping list back to the main activity
         void sendLinkShops(String name, int id);
@@ -37,6 +45,7 @@ public class ShoppingListViewAdapter extends RecyclerView
         TextView bought;
         ImageView deleteImage;
         ImageView linkShops;
+        CardView cardView;
         public DataObjectHolder(View itemView) {
             super(itemView);
             label = (TextView) itemView.findViewById(R.id.name);
@@ -44,7 +53,7 @@ public class ShoppingListViewAdapter extends RecyclerView
             bought = (TextView) itemView.findViewById(R.id.bought);
             deleteImage = (ImageView) itemView.findViewById(R.id.delete_button);
             linkShops = (ImageView) itemView.findViewById(R.id.link_button);
-
+            cardView = itemView.findViewById(R.id.card_view);
             itemView.setOnClickListener(this);
         }
 
@@ -62,6 +71,7 @@ public class ShoppingListViewAdapter extends RecyclerView
     {
         this.mDataset = myDataset;
         this.context = context;
+        this.dataBase = new DataBase(context);
     }
 
     @Override       //Creating view holder from the assigned card view
@@ -69,7 +79,6 @@ public class ShoppingListViewAdapter extends RecyclerView
                                                int viewType) {
         final View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.card_view_shopping_list, parent, false);
-
         DataObjectHolder dataObjectHolder = new DataObjectHolder(view);
         ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
         ImageView linkImage = (ImageView) view.findViewById(R.id.link_button);
@@ -112,13 +121,15 @@ public class ShoppingListViewAdapter extends RecyclerView
 
     @Override       //Binding view objects to card
     public void onBindViewHolder(final DataObjectHolder holder, int position) {
-        DataBase dataBase = new DataBase(context);
         holder.label.setText(mDataset.get(position).getName());             //Setting name to card view
         holder.bought.setText(dataBase.getBoughtCount(mDataset.get(position).getShoppingListID()) + "");
         holder.total.setText( "/" + dataBase.getTotalListItems(mDataset.get(position).getShoppingListID()));                                //Setting the item total
         holder.deleteImage.setTag(mDataset.get(position).getShoppingListID());  //Setting id in tag
         holder.linkShops.setTag(position);                                      //Setting current posistion in card view in tag
         holder.label.setTag(mDataset.get(position).getName());
+        if(mDataset.get(position).checkIfGeofenced(context)){
+            holder.cardView.setBackgroundColor(Color.parseColor("#4CAF50"));
+        }
     }
     //Method to add a card item
     public void addItem(ShoppingList dataObj, int index) {
@@ -128,9 +139,16 @@ public class ShoppingListViewAdapter extends RecyclerView
     //Method to remove a card item
     public void deleteItem(int index, int shopID) {
         if(index < mDataset.size()) {
-            DataBase dataBase = new DataBase(context);
             if(dataBase.deleteShopList(mDataset.get(index))){
                 dataBase.deleteLinkedShopToList(shopID);
+                int locationID = dataBase.checkForlinkShoppingList(shopID);
+                if(locationID != 0){
+                    Location location = dataBase.getLocation(locationID);
+                    location.setGeofenced(false);
+                    dataBase.updateLocation(location);
+                    handleGeofence  = (HandleGeofence) context;
+                    handleGeofence.removeGeofenceData(locationID);
+                }
                 mDataset.remove(index);
                 notifyItemRemoved(index);
             }

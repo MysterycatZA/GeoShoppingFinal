@@ -25,10 +25,11 @@ import static androidx.constraintlayout.widget.StateSet.TAG;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
-    public String geofenceID;                                                           //Geofence id
+    DataBase dataBase;
     private static final String CHANNEL_ID = "Geofence";
 
     public void onReceive(Context context, Intent intent) {
+        dataBase = new DataBase(context);
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
         if (geofencingEvent.hasError()) {
             String errorMessage = getErrorString(geofencingEvent.getErrorCode());
@@ -50,8 +51,15 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             // Get the transition details as a String.
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
 
-            // Send notification and log the transition details.
-            sendNotification(geofenceTransitionDetails, context);
+            for ( Geofence geofence : triggeringGeofences ) {                               // get the ID of each geofence triggered
+                // Send notification and log the transition details.
+                String geofenceID = geofence.getRequestId();
+                String shopName = dataBase.getLocationName(Integer.parseInt(geofenceID));
+                if(!shopName.isEmpty()) {
+                    sendNotification(context, geofenceID, shopName);
+                }
+            }
+
             //Toast.makeText(context, "Plop" + geofenceTransitionDetails, Toast.LENGTH_SHORT).show();
             Log.i(TAG, geofenceTransitionDetails);
 
@@ -61,10 +69,8 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    private void sendNotification(String message, Context context){
-        DataBase dataBase = new DataBase(context);
-        String shopName = dataBase.getLocationName(Integer.parseInt(geofenceID));
-        Log.i(TAG, "sendNotification: " + message );
+    private void sendNotification(Context context, String geofenceID, String shopName){
+        Log.i(TAG, "sendNotification: GID = " + geofenceID);
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("shopID", geofenceID);                      //Adding shoplist id
         intent.putExtra("notification", "external");                      //Adding shoplist id
@@ -96,7 +102,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         ArrayList<String> triggeringGeofencesList = new ArrayList<>();                  //List of triggering geofences
         for ( Geofence geofence : triggeringGeofences ) {                               // get the ID of each geofence triggered
             triggeringGeofencesList.add( geofence.getRequestId() );
-            geofenceID = geofence.getRequestId();
+            //geofenceID = geofence.getRequestId();
         }
 
         String status = null;                                                       //Status of geofence ie entering

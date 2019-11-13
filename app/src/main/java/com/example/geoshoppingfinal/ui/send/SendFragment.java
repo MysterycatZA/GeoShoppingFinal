@@ -1,6 +1,8 @@
 package com.example.geoshoppingfinal.ui.send;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
@@ -23,10 +26,13 @@ import com.example.geoshoppingfinal.AddItemActivity;
 import com.example.geoshoppingfinal.DataBase;
 import com.example.geoshoppingfinal.ItemList;
 import com.example.geoshoppingfinal.ItemListViewAdapter;
+import com.example.geoshoppingfinal.Location;
 import com.example.geoshoppingfinal.MainActivity;
 import com.example.geoshoppingfinal.MainViewModel;
 import com.example.geoshoppingfinal.R;
+import com.example.geoshoppingfinal.ShoppingList;
 import com.example.geoshoppingfinal.ui.home.HomeViewModel;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -38,6 +44,7 @@ public class SendFragment extends Fragment {
     private ArrayList<ItemList> list;
     private int shopID;
     private MainViewModel mainViewModel;
+    private DataBase dataBase;
     //SendFragmentArgs args;
     private static final int REQUEST_CODE_ITEM = 2;
 
@@ -45,7 +52,7 @@ public class SendFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //args = SendFragmentArgs.fromBundle(requireArguments());
-        DataBase dataBase = new DataBase(getContext());
+        dataBase = new DataBase(getContext());
         shopID = getArguments().getInt("shopID");
         String title = dataBase.getShopListName(shopID);
         mainViewModel =
@@ -58,6 +65,7 @@ public class SendFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_send, container, false);
         listView = (ListView) root.findViewById(R.id.itemListView);
+        listView.setEmptyView(root.findViewById(R.id.emptyElement));
         FloatingActionButton fab = getActivity().findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,8 +112,14 @@ public class SendFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         getActivity();
-        if((requestCode == REQUEST_CODE_ITEM) && (resultCode == Activity.RESULT_OK)){
+        if(requestCode == REQUEST_CODE_ITEM){
             loadData(0, shopID);
+            if(resultCode == Activity.RESULT_OK){
+                int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
+                if (list.size() == 1 && lastLocationID != 0 && !dataBase.checkListIsGeofenced(shopID)) {
+                    autoGeofenceHistory(dataBase.getLocation(lastLocationID));
+                }
+            }
 /*            ItemList item = new ItemList(data.getIntExtra("quantity", -1), data.getIntExtra("id", -1), data.getIntExtra("shopID", -1));
             DataBase db = new DataBase(getContext());
             int values[] = db.checkItemListExist(item.getItemID(), item.getShoppingListID());
@@ -130,6 +144,53 @@ public class SendFragment extends Fragment {
 /*        if(requestCode == 1 && resultCode == Activity.RESULT_OK) {
             //some code
         }*/
+    }
+
+    public void autoGeofenceHistory(final Location location){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Do you want to Geofence this previous Location?");
+        builder.setMessage(location.getName());
+// Add the buttons
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                if(location.isGeofenced()){
+                    showError("Location already geofenced!", getContext());
+                }
+                else{
+                    location.setGeofenced(true);
+                    location.setShoppingListID(shopID);
+                    if (dataBase.updateLocation(location)) {
+                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        ((MainActivity) getActivity()).createGeofence(latLng, location.getLocationID() + "");
+                        ((MainActivity) getActivity()).addGeofence();
+                        loadData(0,shopID);
+                    }
+                }
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public void showError(String message, Context context){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context); //Alerting user that the location is already linked
+
+        builder.setMessage(message)
+                .setTitle("Error");
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     //Method that opens link shop activity from the card adapter
@@ -176,7 +237,6 @@ public class SendFragment extends Fragment {
     }
 
     private void loadData(int sort, int shopID) {
-        DataBase dataBase = new DataBase(getActivity());
         list = dataBase.retrieveListItems(sort, shopID);
         adapter = new ItemListViewAdapter(getActivity(), list);             //List view displaying items
         listView.setAdapter(adapter);

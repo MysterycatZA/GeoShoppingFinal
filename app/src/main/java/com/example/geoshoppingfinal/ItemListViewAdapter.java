@@ -170,7 +170,7 @@ public class ItemListViewAdapter extends BaseAdapter {
         else if(data.get(position).isClearBought()){
             view = inflater.inflate(R.layout.clear_item_list, null);
             TextView separatorView = (TextView) view.findViewById(R.id.clear);
-            separatorView.setText("Click to clear bought");
+            separatorView.setText("Click here to clear bought");
             separatorView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

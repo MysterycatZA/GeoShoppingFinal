@@ -87,6 +87,54 @@ public class DataBase {
         return false;
     }
 
+    public boolean checkListIsGeofenced(int shopID){
+        boolean geofenced = false;
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT geofenced FROM Location where geofenced = 1 AND shopID = " + shopID,null);
+
+            if(cursor.getCount() > 0){
+                geofenced = true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return geofenced;
+    }
+
+    public ShoppingList getShopList(int shopID){
+        ShoppingList shoppingList = new ShoppingList();
+
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT * FROM Shopping WHERE id = " + shopID,null);
+
+            while (cursor.moveToNext())
+            {
+                int id = cursor.getInt(0);
+                String name = cursor.getString(1);
+                int lastLocation = cursor.getInt(2);
+
+                shoppingList.setName(name);
+                shoppingList.setShoppingListID(id);
+                shoppingList.setLastLocationID(lastLocation);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return shoppingList;
+    }
+
     public int getShopListID(int locationID){
         int shopID = 0;
         try {
@@ -466,6 +514,7 @@ public class DataBase {
 
             ContentValues values = new ContentValues();
             values.put("name", item.getName());
+            values.put("lastLocation", item.getLastLocationID());
 
             int result = db.update(context.getString(R.string.SHOP_LIST_TABLE), values, "id = ?", new String[] { String.valueOf(item.getShoppingListID()) });
 
@@ -506,6 +555,7 @@ public class DataBase {
 
             ContentValues contentValues = new ContentValues();
             contentValues.put("name", item.getName());
+            contentValues.put("lastLocation", item.getLastLocationID());
 
             long result = db.insert(context.getString(R.string.SHOP_LIST_TABLE), "id", contentValues);
             if (result > 0) {
@@ -559,10 +609,12 @@ public class DataBase {
             {
                 int id = cursor.getInt(0);
                 String name = cursor.getString(1);
+                int lastLocation = cursor.getInt(2);
 
                 item = new ShoppingList();
                 item.setName(name);
                 item.setShoppingListID(id);
+                item.setLastLocationID(lastLocation);
 
                 arrayList.add(item);
             }
@@ -622,6 +674,24 @@ public class DataBase {
     }
 
     //DELETE FROM DATABASE
+    public boolean deleteLinkedItemToList(int itemID){
+        try{
+            db = helper.getWritableDatabase();
+            int result = db.delete(context.getString(R.string.LIST_TABLE), "itemID = ?", new String[] { String.valueOf(itemID) });
+
+            if (result > 0) {
+                return true;
+            }
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+        return false;
+    }
+
+    //DELETE FROM DATABASE
     public boolean deleteLinkedShopToList(int shopID){
         try{
             db = helper.getWritableDatabase();
@@ -637,6 +707,25 @@ public class DataBase {
             helper.close();
         }
         return false;
+    }
+
+    public int checkForlinkShoppingList(int shopID){
+        int locationID = 0;
+        try{
+            db = helper.getWritableDatabase();
+            Cursor cursor = db.rawQuery("SELECT id FROM Location where geofenced = 1 AND shopid = " + shopID,null);
+
+            while (cursor.moveToNext())
+            {
+                locationID = (cursor.getInt(0));
+            }
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+        return locationID;
     }
 
     public int getTotalListItems(int shopID){

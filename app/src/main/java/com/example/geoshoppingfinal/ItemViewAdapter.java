@@ -37,6 +37,7 @@ public class ItemViewAdapter extends BaseAdapter {
 
     public interface AddItem{                                     //Interface for sending the position and id of the shopping list back to the main activity
         void sendItem(int quantity, int id);
+        void deleteItem();
     }
 
     public ItemViewAdapter(Context context, ArrayList<Item> list, String searchText) {
@@ -157,7 +158,10 @@ public class ItemViewAdapter extends BaseAdapter {
                     final View myView = inflat.inflate(R.layout.dialog_add_item, null);
                     builder.setView(myView);
                     final TextView itemName = (TextView) myView.findViewById(R.id.itemName);
+                    EditText itemNameEdit = myView.findViewById(R.id.itemNameEdit);
                     final EditText quantity = (EditText) myView.findViewById(R.id.itemQty);
+
+                    itemNameEdit.setVisibility(View.GONE);
 
                     itemName.setText(searchText);
 
@@ -201,7 +205,10 @@ public class ItemViewAdapter extends BaseAdapter {
                     final View myView = inflat.inflate(R.layout.dialog_add_item, null);
                     builder.setView(myView);
                     final TextView itemName = (TextView) myView.findViewById(R.id.itemName);
+                    EditText itemNameEdit = myView.findViewById(R.id.itemNameEdit);
                     final EditText quantity = (EditText) myView.findViewById(R.id.itemQty);
+
+                    itemNameEdit.setVisibility(View.GONE);
 
                     itemName.setText(item.getName());
 
@@ -237,13 +244,25 @@ public class ItemViewAdapter extends BaseAdapter {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
                             DataBase dataBase = new DataBase(context);
                             if (dataBase.deleteItem(item)) {
-                                if(getItem(position - 1).isSeparator() && getItem(position + 1).isSeparator()){
+                                dataBase.deleteLinkedItemToList(item.getItemID());
+                                addItem = (AddItem) parent.getContext();
+                                delete(position);
+                                addItem.deleteItem();
+/*                                if(getCount() == 2){
+                                    delete(position);
+                                    delete(position - 1);
+
+                                }
+                                else if(getCount() == position){
+                                    delete(position);
+                                }
+                                else if(getItem(position - 1).isSeparator() && getItem(position + 1).isSeparator()){
                                     delete(position - 1);
                                     delete(position - 1);
                                 }
                                 else {
                                     delete(position);
-                                }
+                                }*/
                                 dialog.dismiss();
                             }
                         }

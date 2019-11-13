@@ -3,6 +3,7 @@ package com.example.geoshoppingfinal.ui.slideshow;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -22,6 +24,8 @@ import com.example.geoshoppingfinal.LocationListViewAdapter;
 import com.example.geoshoppingfinal.MainActivity;
 import com.example.geoshoppingfinal.MainViewModel;
 import com.example.geoshoppingfinal.R;
+import com.example.geoshoppingfinal.ShoppingList;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.rtchagas.pingplacepicker.PingPlacePicker;
@@ -83,6 +87,7 @@ public class SlideshowFragment extends Fragment {
             }
         });
         listView = (ListView) root.findViewById(R.id.locationListView);
+        listView.setEmptyView(root.findViewById(R.id.emptyElement));
         loadData(false);
         return root;
     }
@@ -117,7 +122,12 @@ public class SlideshowFragment extends Fragment {
                 (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getActivity().getComponentName()));
-
+        searchView.setQueryHint("Search location name here");
+        searchView.setIconifiedByDefault(false);
+        searchView.setFocusable(true);
+        searchView.setIconified(false);
+        searchView.clearFocus();
+        searchView.requestFocusFromTouch();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -156,21 +166,73 @@ public class SlideshowFragment extends Fragment {
                     int id = dataBase.saveLocation(location);
                     if (id != 0) {
                         Toast.makeText(getContext(), "Saved!", Toast.LENGTH_SHORT).show();
+                        if(shopID > 0) {
+                            geofenceLocation(place.getLatLng(), id);
+                        }
                         loadData(false);
-/*                        ((MainActivity)getActivity()).GeoFenceInterface(place.getLatLng(), id + "");
-                        ((MainActivity)getActivity()).addGeofence();*/
+
                     } else {
                         Toast.makeText(getContext(), "Not Saved", Toast.LENGTH_SHORT).show();
                     }
                 }
                 else {
-                    Toast.makeText(getContext(), "Place already geofenced!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Place already added!", Toast.LENGTH_SHORT).show();
                 }
             }
         }
     }
 
-    public boolean checkLinked(ArrayList<Location> locations){
+    public void geofenceLocation(final LatLng latLng, final int locationID){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Do you want to geofence this location?");
+// Add the buttons
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                DataBase dataBase = new DataBase(getContext());
+                Location location = dataBase.getLocation(locationID);
+                if(dataBase.checkListIsGeofenced(shopID)){
+                    showError("Shopping List already geofenced!", getContext());
+                }
+                else{
+                    ShoppingList shoppingList = dataBase.getShopList(shopID);
+                    shoppingList.setLastLocationID(location.getLocationID());
+                    dataBase.updateShopList(shoppingList);
+                    location.setGeofenced(true);
+                    location.setShoppingListID(shopID);
+                    if (dataBase.updateLocation(location)) {
+                        ((MainActivity) getActivity()).createGeofence(latLng, locationID + "");
+                        ((MainActivity) getActivity()).addGeofence();
+                        loadData(false);
+                    }
+                }
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public void showError(String message, Context context){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context); //Alerting user that the location is already linked
+
+        builder.setMessage(message)
+                .setTitle("Error");
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+/*    public boolean checkLinked(ArrayList<Location> locations){
         boolean found = false;
         int index = 0;
         while (!found && index < locations.size()){
@@ -180,7 +242,7 @@ public class SlideshowFragment extends Fragment {
             index++;
         }
         return found;
-    }
+    }*/
 
     private void loadData(boolean search) {
 
@@ -191,7 +253,7 @@ public class SlideshowFragment extends Fragment {
             DataBase dataBase = new DataBase(getActivity());
             list = dataBase.retrieveLocations();
         }
-        adapter = new LocationListViewAdapter(getActivity(), list, shopID, checkLinked(list));             //List view displaying items
+        adapter = new LocationListViewAdapter(getActivity(), list, shopID);             //List view displaying items
         listView.setAdapter(adapter);
     }
 }

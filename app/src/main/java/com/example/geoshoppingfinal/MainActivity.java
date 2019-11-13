@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -43,6 +44,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity
     implements ShoppingListViewAdapter.LinkShops,
+        ShoppingListViewAdapter.HandleGeofence,
         LocationListViewAdapter.GeoFenceInterface {
     private AppBarConfiguration mAppBarConfiguration;
     private NavController navController;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<Geofence> geofences;
     private MainViewModel mainViewModel;
     //Constants
-    private static final float GEOFENCE_RADIUS = 250.0f; // in meters
+    private static final float GEOFENCE_RADIUS = 300.0f; // in meters
     private static final String CHANNEL_ID = "Geofence";
     private static final int REQUEST_CODE_PLACE = 1;
     private static final int REQUEST_CODE_ITEM = 2;
@@ -88,18 +90,18 @@ public class MainActivity extends AppCompatActivity
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
-/*        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 if(menuItem.getItemId() == R.id.nav_gallery){
-                    showPlacePicker();
+                    removeGeofences();
                 }
 
                 boolean result = NavigationUI.onNavDestinationSelected(menuItem, navController);
                 drawer.closeDrawers();
                 return result;
             }
-        });*/
+        });
         final FloatingActionButton fab = this.findViewById(R.id.fab);
 /*        fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -181,7 +183,7 @@ public class MainActivity extends AppCompatActivity
                 Location location = dataBase.getLocation(shopID);
                 int shopListID = location.getShoppingListID();
                 location.setGeofenced(false);
-                location.setShoppingListID(-1);
+                //location.setShoppingListID(-1);
                 if(dataBase.updateLocation(location)) {
                     removeGeofenceData(shopID);
                     Bundle bundle = new Bundle();

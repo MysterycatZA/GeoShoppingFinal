@@ -23,7 +23,6 @@ public class LocationListViewAdapter extends BaseAdapter {
     private static LayoutInflater inflater = null;         //Layout inflater
     public GeoFenceInterface geoFenceInterface;                                     //Link shop interface
     private int shopID;
-    private boolean checkLinked;
 
     public interface GeoFenceInterface {                                     //Interface for sending the position and id of the shopping list back to the main activity
         void createGeofenceData(LatLng latLng, int id);
@@ -31,11 +30,10 @@ public class LocationListViewAdapter extends BaseAdapter {
     }
 
     //Constructor
-    public LocationListViewAdapter(Context context, ArrayList<Location> data, int shopID, boolean checkLinked) {
+    public LocationListViewAdapter(Context context, ArrayList<Location> data, int shopID) {
         this.context = context;
         this.data = data;
         this.shopID = shopID;
-        this.checkLinked = checkLinked;
         inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -77,17 +75,19 @@ public class LocationListViewAdapter extends BaseAdapter {
         final ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
         final TextView shopName = view.findViewById(R.id.shopNameLabel);
         // Get the data item
+        final DataBase dataBase = new DataBase(context);
         final Location location = data.get(position);
+        String shopNameText = "";
         if(location.isGeofenced()){
             simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_on_holo);
             simpleCheckedTextView.setChecked(true);
+            shopNameText = dataBase.getShopListName(location.getShoppingListID());
         }
         else {
             simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_off_holo);
             simpleCheckedTextView.setChecked(false);
         }
-        DataBase dataBase = new DataBase(context);
-        shopName.setText(dataBase.getShopListName(location.getShoppingListID()));
+        shopName.setText(shopNameText);
         //Toast.makeText(this, "You selected the place: " + place.getName(), Toast.LENGTH_SHORT).show();
         // Display the data item's properties
         simpleCheckedTextView.setText(location.getName());
@@ -116,7 +116,7 @@ public class LocationListViewAdapter extends BaseAdapter {
                 } else {
                     if(shopID != 0){
                         if(!data.get(position).isGeofenced()) {
-                            if(!checkLinked) {
+                            if(!dataBase.checkListIsGeofenced(location.getShoppingListID())) {
                                 addGeofence(shopID, location, position);
                             }
                             else {
@@ -128,7 +128,7 @@ public class LocationListViewAdapter extends BaseAdapter {
                         }
                     }
                     else{
-                        showError("No shop to link");
+                        showError("No shopping list to link");
                     }
                 }
             }
@@ -167,6 +167,9 @@ public class LocationListViewAdapter extends BaseAdapter {
         DataBase dataBase = new DataBase(context);
         location.setGeofenced(true);
         location.setShoppingListID(shopID);
+        ShoppingList shoppingList = dataBase.getShopList(shopID);
+        shoppingList.setLastLocationID(location.getLocationID());
+        dataBase.updateShopList(shoppingList);
         if (dataBase.updateLocation(location)) {
             data.get(position).setGeofenced(true);
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -190,7 +193,7 @@ public class LocationListViewAdapter extends BaseAdapter {
     public void removeGeofence(Location location, int position){
         DataBase dataBase = new DataBase(context);
         location.setGeofenced(false);
-        location.setShoppingListID(-1);
+        //location.setShoppingListID(-1);
         if (dataBase.updateLocation(location)) {
             data.get(position).setGeofenced(false);
             geoFenceInterface  = (GeoFenceInterface) context;
