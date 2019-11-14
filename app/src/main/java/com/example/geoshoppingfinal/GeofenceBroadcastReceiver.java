@@ -25,7 +25,7 @@ import static androidx.constraintlayout.widget.StateSet.TAG;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
-    DataBase dataBase;
+    private DataBase dataBase;
     private static final String CHANNEL_ID = "Geofence";
 
     public void onReceive(Context context, Intent intent) {
@@ -54,8 +54,10 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             for ( Geofence geofence : triggeringGeofences ) {                               // get the ID of each geofence triggered
                 // Send notification and log the transition details.
                 String geofenceID = geofence.getRequestId();
-                String shopName = dataBase.getLocationName(Integer.parseInt(geofenceID));
-                if(!shopName.isEmpty()) {
+                Location location = dataBase.getLocation(Integer.parseInt(geofenceID));
+                String shopName = location.getName();
+                boolean geofenced = location.isGeofenced();
+                if(!shopName.isEmpty() && geofenced) {
                     sendNotification(context, geofenceID, shopName);
                 }
             }
@@ -74,8 +76,12 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("shopID", geofenceID);                      //Adding shoplist id
         intent.putExtra("notification", "external");                      //Adding shoplist id
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(intent);
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(geofenceID), PendingIntent.FLAG_UPDATE_CURRENT);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        //PendingIntent pendingIntent = PendingIntent.getActivity(context, Integer.parseInt(geofenceID), intent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
         // notificationId is a unique int for each notification that you must define

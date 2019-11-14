@@ -1,6 +1,7 @@
 package com.example.geoshoppingfinal.ui.slideshow;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -45,11 +46,18 @@ public class SlideshowFragment extends Fragment {
     private int shopID;
     private String shopName;
     private MainViewModel mainViewModel;
+    private ProgressDialog progressDialog;
+    private DataBase dataBase;
     private static final int REQUEST_CODE_PLACE = 1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setTitle("Loading...");
+        progressDialog.setMessage("Loading place picker, please wait...");
+        progressDialog.setCancelable(false);
+        progressDialog.setInverseBackgroundForced(false);
         if(getArguments() != null && getArguments().getInt("shopListID", -1) != -1){
             shopID = getArguments().getInt("shopListID");
             shopName = getArguments().getString("shopListName");
@@ -79,10 +87,12 @@ public class SlideshowFragment extends Fragment {
                 textView.setText(s);
             }
         });*/
+        dataBase = new DataBase(getContext());
         FloatingActionButton fab = getActivity().findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                progressDialog.show();
                 showPlacePicker();
             }
         });
@@ -153,13 +163,20 @@ public class SlideshowFragment extends Fragment {
         });
     }
 
+    @Override   //On resume method
+    public void onResume() {
+        super.onResume();
+        if(progressDialog != null) {
+            progressDialog.hide();
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if ((requestCode == REQUEST_CODE_PLACE) && (resultCode == Activity.RESULT_OK)) {
             Place place = PingPlacePicker.getPlace(data);
             if (place != null) {
-                DataBase dataBase = new DataBase(getContext());
                 Location location = new Location(place.getName(), place.getLatLng().latitude, place.getLatLng().longitude);
                 if(!dataBase.checkLocationExist(location)) {
                     //location.setShoppingListID(shopID);
@@ -188,7 +205,6 @@ public class SlideshowFragment extends Fragment {
 // Add the buttons
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                DataBase dataBase = new DataBase(getContext());
                 Location location = dataBase.getLocation(locationID);
                 if(dataBase.checkListIsGeofenced(shopID)){
                     showError("Shopping List already geofenced!", getContext());
@@ -201,7 +217,7 @@ public class SlideshowFragment extends Fragment {
                     location.setShoppingListID(shopID);
                     if (dataBase.updateLocation(location)) {
                         ((MainActivity) getActivity()).createGeofence(latLng, locationID + "");
-                        ((MainActivity) getActivity()).addGeofence();
+                        ((MainActivity) getActivity()).addGeofence(locationID);
                         loadData(false);
                     }
                 }
@@ -250,7 +266,6 @@ public class SlideshowFragment extends Fragment {
             list = searchList;
         }
         else {
-            DataBase dataBase = new DataBase(getActivity());
             list = dataBase.retrieveLocations();
         }
         adapter = new LocationListViewAdapter(getActivity(), list, shopID);             //List view displaying items

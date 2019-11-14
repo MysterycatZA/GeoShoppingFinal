@@ -24,6 +24,7 @@ public class ItemViewAdapter extends BaseAdapter {
     private ArrayList<Item> data;
     public AddItem addItem;                                     //Link shop interface
     private String searchText;
+    private DataBase dataBase;
 
     // View Type for Separators
     private static final int ITEM_VIEW_TYPE_SEPARATOR = 0;
@@ -44,6 +45,7 @@ public class ItemViewAdapter extends BaseAdapter {
         this.context = context;
         this.data = list;
         this.searchText = searchText;
+        this.dataBase = new DataBase(context);
     }
 
     @Override //Return array list size
@@ -169,8 +171,7 @@ public class ItemViewAdapter extends BaseAdapter {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
                             if(!quantity.getText().toString().isEmpty()){
                                 int amount = Integer.parseInt(quantity.getText().toString());
-                                DataBase db = new DataBase(context);
-                                int itemID = db.saveItem(new Item(searchText));
+                                int itemID = dataBase.saveItem(new Item(searchText));
                                 if(itemID > 0){
                                     addItem = (AddItem) parent.getContext();
                                     addItem.sendItem(amount, itemID);
@@ -242,7 +243,6 @@ public class ItemViewAdapter extends BaseAdapter {
 
                     builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
-                            DataBase dataBase = new DataBase(context);
                             if (dataBase.deleteItem(item)) {
                                 dataBase.deleteLinkedItemToList(item.getItemID());
                                 addItem = (AddItem) parent.getContext();

@@ -32,11 +32,13 @@ public class AddItemActivity extends AppCompatActivity
     private ArrayList<Item> list;
     private ArrayList<Item> searchList;
     private int shopID;
+    private DataBase dataBase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item);
+        dataBase = new DataBase(getBaseContext());
         shopID = getIntent().getIntExtra("shopListID", -1);
         setTitle("Add Item");
         sortView(false, "");
@@ -65,8 +67,7 @@ public class AddItemActivity extends AppCompatActivity
                 if(!itemNameEdit.getText().toString().isEmpty() && !quantity.getText().toString().isEmpty()){
                     int amount = Integer.parseInt(quantity.getText().toString());
                     String name = itemNameEdit.getText().toString();
-                    DataBase db = new DataBase(getBaseContext());
-                    int itemID = db.saveItem(new Item(name));
+                    int itemID = dataBase.saveItem(new Item(name));
                     if(itemID > 0){
                         sendItem(amount, itemID);
                         dialog.dismiss();
@@ -148,11 +149,10 @@ public class AddItemActivity extends AppCompatActivity
     //Method that opens link shop activity from the card adapter
     public void sendItem(int quantity, int id){
         //ItemList item = new ItemList(data.getIntExtra("quantity", -1), data.getIntExtra("id", -1), data.getIntExtra("shopID", -1));
-        DataBase db = new DataBase(this);
         ItemList item = new ItemList(quantity, id, shopID);
-        int values[] = db.checkItemListExist(item.getItemID(), item.getShoppingListID());
+        int values[] = dataBase.checkItemListExist(item.getItemID(), item.getShoppingListID());
         if(values[0] == 0){
-            if(db.saveListItem(item)){
+            if(dataBase.saveListItem(item)){
                 Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
             }
             else {
@@ -162,7 +162,7 @@ public class AddItemActivity extends AppCompatActivity
         else {
             item.setItemListID(values[0]);
             item.setQuantity(item.getQuantity() + values[1]);
-            if (db.updateListItem(item)) {
+            if (dataBase.updateListItem(item)) {
                 Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
             }
         }
@@ -195,10 +195,9 @@ public class AddItemActivity extends AppCompatActivity
             }
         }
         else{
-            DataBase db = new DataBase(this);
 
             // Creating our custom adapter
-            list = db.retrieveItemsSorted();
+            list = dataBase.retrieveItemsSorted();
         }
 
         ItemViewAdapter adapter = new ItemViewAdapter(AddItemActivity.this, list, searchText);

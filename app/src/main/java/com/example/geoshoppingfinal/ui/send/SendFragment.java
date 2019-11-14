@@ -116,7 +116,7 @@ public class SendFragment extends Fragment {
             loadData(0, shopID);
             if(resultCode == Activity.RESULT_OK){
                 int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
-                if (list.size() == 1 && lastLocationID != 0 && !dataBase.checkListIsGeofenced(shopID)) {
+                if (list.size() == 1 && lastLocationID != 0 && !dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
                     autoGeofenceHistory(dataBase.getLocation(lastLocationID));
                 }
             }
@@ -162,7 +162,7 @@ public class SendFragment extends Fragment {
                     if (dataBase.updateLocation(location)) {
                         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                         ((MainActivity) getActivity()).createGeofence(latLng, location.getLocationID() + "");
-                        ((MainActivity) getActivity()).addGeofence();
+                        ((MainActivity) getActivity()).addGeofence(location.getLocationID());
                         loadData(0,shopID);
                     }
                 }

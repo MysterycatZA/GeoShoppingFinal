@@ -27,10 +27,12 @@ public class ItemListViewAdapter extends BaseAdapter {
     private ArrayList<ItemList> data;                       //Array list of items
     private Context context;                            //Context of passed activity
     private static LayoutInflater inflater = null;         //Layout inflater
+    private DataBase dataBase;
     //Constructor
     public ItemListViewAdapter(Context context, ArrayList<ItemList> data) {
         this.context = context;
         this.data = data;
+        this.dataBase = new DataBase(context);
         sortChecked();
         inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -150,7 +152,6 @@ public class ItemListViewAdapter extends BaseAdapter {
             if(itemList.isBought()){
                 i.remove();
                 data.remove(itemList);
-                DataBase dataBase = new DataBase(context);
                 dataBase.deleteListItem(itemList);
             }
         }
@@ -218,7 +219,6 @@ public class ItemListViewAdapter extends BaseAdapter {
                 public void onClick(View v) {
                     if (simpleCheckedTextView.isChecked()) {
                         // set cheek mark drawable and set total property to false
-                        DataBase dataBase = new DataBase(context);
                         item.setBought(false);
                         if (dataBase.updateListItem(item)) {
 /*                            simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_off_holo);
@@ -230,7 +230,6 @@ public class ItemListViewAdapter extends BaseAdapter {
                     } else {
                         // set cheek mark drawable and set total property to true
                         item.setBought(true);
-                        DataBase dataBase = new DataBase(context);
                         if (dataBase.updateListItem(item)) {
 /*                            simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_on_holo);
                             simpleCheckedTextView.setChecked(true);
@@ -251,7 +250,6 @@ public class ItemListViewAdapter extends BaseAdapter {
 
                     builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
-                            DataBase dataBase = new DataBase(context);
                             if (dataBase.deleteListItem(item)) {
                                 data.remove(position);
                                 resetView();

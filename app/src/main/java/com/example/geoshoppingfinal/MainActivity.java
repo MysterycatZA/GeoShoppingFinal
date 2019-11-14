@@ -3,6 +3,7 @@ package com.example.geoshoppingfinal;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,9 +51,10 @@ public class MainActivity extends AppCompatActivity
     private NavController navController;
     private DrawerLayout drawer;
     private GeofencingClient geofencingClient;
-    private PendingIntent geofencePendingIntent;
+    //private PendingIntent geofencePendingIntent;
     private ArrayList<Geofence> geofences;
     private MainViewModel mainViewModel;
+    private DataBase dataBase;
     //Constants
     private static final float GEOFENCE_RADIUS = 300.0f; // in meters
     private static final String CHANNEL_ID = "Geofence";
@@ -94,7 +96,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 if(menuItem.getItemId() == R.id.nav_gallery){
-                    removeGeofences();
+                    //removeGeofences();
                 }
 
                 boolean result = NavigationUI.onNavDestinationSelected(menuItem, navController);
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
         //checkForNotification();
-        DataBase dataBase = new DataBase(this);
+        dataBase = new DataBase(this);
         dataBase.setupItem();
 
         //removeGeofences();
@@ -138,7 +140,7 @@ public class MainActivity extends AppCompatActivity
             Location location = dataBase.getLocation(shopID);
             int shopListID = location.getShoppingListID();
             location.setGeofenced(false);
-            location.setShoppingListID(-1);
+            //location.setShoppingListID(-1);
             if(dataBase.updateLocation(location)) {
                 removeGeofenceData(shopID);
                 Bundle bundle = new Bundle();
@@ -158,11 +160,15 @@ public class MainActivity extends AppCompatActivity
 
     public void createGeofenceData(LatLng latLng, int id){
         createGeofence(latLng, id + "");
-        addGeofence();
+        addGeofence(id);
     }
     public void removeGeofenceData(int id){
         List<String> geofenceList = Arrays.asList(id + "");
-        removeGeofence(geofenceList);
+        removeGeofenceID(geofenceList);
+        removeGeofencePending(id);
+        Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
+        PendingIntent.getBroadcast(this, id, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT).cancel();
     }
 
     public void openShopListFragment(View view, int shopID){
@@ -178,7 +184,9 @@ public class MainActivity extends AppCompatActivity
         if (intent != null) {
             String data = intent.getStringExtra("notification");
             if (data != null) {
-                DataBase dataBase = new DataBase(getApplicationContext());
+                if(dataBase == null) {
+                    dataBase = new DataBase(getApplicationContext());
+                }
                 int shopID = Integer.parseInt(intent.getStringExtra("shopID"));
                 Location location = dataBase.getLocation(shopID);
                 int shopListID = location.getShoppingListID();
@@ -336,7 +344,7 @@ public class MainActivity extends AppCompatActivity
         return builder.build();
     }
 
-    public void removeGeofences(){
+/*    public void removeGeofences(){
         geofencingClient.removeGeofences(getGeofencePendingIntent())
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
@@ -354,14 +362,14 @@ public class MainActivity extends AppCompatActivity
                         // ...
                     }
                 });
-    }
+    }*/
 
-    public void removeGeofence(List<String> geofences){
-        geofencingClient.removeGeofences(geofences)
+    public void removeGeofencePending(int id){
+        geofencingClient.removeGeofences(getGeofencePendingIntent(id))
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Toast.makeText(getApplicationContext(), "Geofences removed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Geofences Pending removed", Toast.LENGTH_SHORT).show();
                         // Geofences removed
                         // ...
                     }
@@ -376,8 +384,28 @@ public class MainActivity extends AppCompatActivity
                 });
     }
 
-    public void addGeofence(){
-        geofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+    public void removeGeofenceID(List<String> geofences){
+        geofencingClient.removeGeofences(geofences)
+                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(getApplicationContext(), "Geofences ID removed", Toast.LENGTH_SHORT).show();
+                        // Geofences removed
+                        // ...
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "Failed to remove geofences", Toast.LENGTH_SHORT).show();
+                        // Failed to remove geofences
+                        // ...
+                    }
+                });
+    }
+
+    public void addGeofence(int geofenceID){
+        geofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent(geofenceID))
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -398,17 +426,17 @@ public class MainActivity extends AppCompatActivity
 
 
 
-    private PendingIntent getGeofencePendingIntent() {
+    private PendingIntent getGeofencePendingIntent(int requestCode) {
         // Reuse the PendingIntent if we already have it.
-        if (geofencePendingIntent != null) {
+/*        if (geofencePendingIntent != null) {
             return geofencePendingIntent;
-        }
+        }*/
+        Context context = this;
         Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeGeofences().
-        geofencePendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.
-                FLAG_UPDATE_CURRENT);
-        return geofencePendingIntent;
+        return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        //return geofencePendingIntent;
     }
 
 /*    @Override

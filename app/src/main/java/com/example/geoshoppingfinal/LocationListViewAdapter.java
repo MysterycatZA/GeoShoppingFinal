@@ -116,7 +116,7 @@ public class LocationListViewAdapter extends BaseAdapter {
                 } else {
                     if(shopID != 0){
                         if(!data.get(position).isGeofenced()) {
-                            if(!dataBase.checkListIsGeofenced(location.getShoppingListID())) {
+                            if(!dataBase.checkListIsGeofenced(shopID)) {
                                 addGeofence(shopID, location, position);
                             }
                             else {

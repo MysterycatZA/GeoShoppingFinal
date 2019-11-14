@@ -36,6 +36,7 @@ public class HomeFragment extends Fragment {
     private View root;
     private MainViewModel mainViewModel;
     private TextView emptyView;
+    private DataBase dataBase;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,7 @@ public class HomeFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(mLayoutManager);
+        dataBase = new DataBase(getActivity());
 
         loadData(0);
         FloatingActionButton fab = getActivity().findViewById(R.id.fab);
@@ -104,8 +106,7 @@ public class HomeFragment extends Fragment {
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {           //Yes
                 if(!shopName.getText().toString().isEmpty()){
-                    DataBase db = new DataBase(getContext());
-                    int itemID = db.saveShopList(new ShoppingList(shopName.getText().toString()));
+                    int itemID = dataBase.saveShopList(new ShoppingList(shopName.getText().toString()));
                     if(itemID > 0){
                         loadData(0);
                         dialog.dismiss();
@@ -164,7 +165,6 @@ public class HomeFragment extends Fragment {
     }*/
 
     private void loadData(int sort) {
-        DataBase dataBase = new DataBase(getActivity());
         list = dataBase.retrieveShopList();
 /*        if(list.size() > 0) {
             adapter = new ShoppingListViewAdapter(getContext(), list);             //List view displaying items
