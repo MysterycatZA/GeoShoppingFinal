@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofenceStatusCodes;
@@ -61,8 +60,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                     sendNotification(context, geofenceID, shopName);
                 }
             }
-
-            //Toast.makeText(context, "Plop" + geofenceTransitionDetails, Toast.LENGTH_SHORT).show();
             Log.i(TAG, geofenceTransitionDetails);
 
         } else {
@@ -91,7 +88,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
     private Notification createNotification(String message, PendingIntent notificationPendingIntent, Context context){
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.common_google_signin_btn_icon_light)
+                .setSmallIcon(R.drawable.baseline_beenhere_black_18dp)
                 .setColor(Color.GREEN)
                 .setContentTitle("Shop Notification")
                 .setContentText("Click to open " + message + " shopping list")

@@ -13,5 +13,5 @@
     <string name="SHOP_LIST_TABLE">Shopping</string>
     <string name="ANDROID_API_KEY">AIzaSyAaOSozlNmzZcjQ_8rgnSiZ1CX92wuskus</string>
     <string name="MAPS_API_KEY">AIzaSyDaDQRoc087nDE5_vfvwOGyYGCNRhNH4s4</string>
-    <string name="empty_list">Nothing here!\nClick the plus button at the bottom to add</string>
+    <string name="empty_list">Oops... nothing here.\nClick the plus button at the bottom to add</string>
 </resources>

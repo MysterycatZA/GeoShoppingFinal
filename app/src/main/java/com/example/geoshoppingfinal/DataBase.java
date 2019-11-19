@@ -403,6 +403,42 @@ public class DataBase {
         return 0;
     }
 
+    public boolean checkItemExist(String name){
+        try {
+            db = helper.getWritableDatabase();
+            String []columns = {"id", "name"};
+            String []selectionArgs = {name + "%"};
+            if(db.query(context.getString(R.string.ITEM_TABLE), columns,"name LIKE ?",selectionArgs,null,null,null).getCount() > 0){
+                return true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return false;
+    }
+
+    public boolean checkShoppingListExist(String name){
+        try {
+            db = helper.getWritableDatabase();
+            String []columns = {"id", "name"};
+            String []selectionArgs = {name + "%"};
+            if(db.query(context.getString(R.string.SHOP_LIST_TABLE), columns,"name LIKE ?",selectionArgs,null,null,null).getCount() > 0){
+                return true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return false;
+    }
+
     //Relieving items from the SQLlite Database
     public ArrayList<Item> retrieveItemsSorted() {
 
@@ -414,7 +450,7 @@ public class DataBase {
             Cursor cursor = db.rawQuery("SELECT * FROM Item Order by name ASC",null);
 
             int position = 0;
-            boolean isSeparator = false;
+            boolean isSeparator;
 
             while(cursor.moveToNext()) {
                 isSeparator = false;
@@ -427,7 +463,7 @@ public class DataBase {
                 // If it is the first item then need a separator
                 if (position == 0) {
                     isSeparator = true;
-                    nameArray = name.toCharArray();
+                    nameArray = name.toLowerCase().toCharArray();
                 }
                 else {
                     // Move to previous
@@ -438,8 +474,8 @@ public class DataBase {
 
                     // Convert the previous and current contact names
                     // into char arrays
-                    char[] previousNameArray = previousName.toCharArray();
-                    nameArray = name.toCharArray();
+                    char[] previousNameArray = previousName.toLowerCase().toCharArray();
+                    nameArray = name.toLowerCase().toCharArray();
 
                     // Compare the first character of previous and current contact names
                     if (nameArray[0] != previousNameArray[0]) {

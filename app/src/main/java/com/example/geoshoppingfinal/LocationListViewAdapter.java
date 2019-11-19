@@ -2,6 +2,9 @@ package com.example.geoshoppingfinal;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.location.LocationManager;
+import android.os.Build;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +12,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -88,48 +92,49 @@ public class LocationListViewAdapter extends BaseAdapter {
             simpleCheckedTextView.setChecked(false);
         }
         shopName.setText(shopNameText);
-        //Toast.makeText(this, "You selected the place: " + place.getName(), Toast.LENGTH_SHORT).show();
         // Display the data item's properties
         simpleCheckedTextView.setText(location.getName());
         // perform on Click Event Listener on CheckedTextView
         simpleCheckedTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (simpleCheckedTextView.isChecked()) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setTitle("Are you sure you want to remove from Geofence?");
+                if(isLocationEnabled(context)) {
+                    if (simpleCheckedTextView.isChecked()) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle("Are you sure you want to remove from Geofence?");
 
-                    builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {           //Yes
-                            removeGeofence(location, position);
-                            dialog.dismiss();
-                        }
-                    });
-                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {       //No
-                            // User cancelled the dialog
-                            dialog.dismiss();
-                        }
-                    });
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-                } else {
-                    if(shopID != 0){
-                        if(!data.get(position).isGeofenced()) {
-                            if(!dataBase.checkListIsGeofenced(shopID)) {
-                                addGeofence(shopID, location, position);
+                        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {           //Yes
+                                removeGeofence(location, position);
+                                dialog.dismiss();
                             }
-                            else {
-                                showError("Only 1 shop allowed to be geofenced at a time");
+                        });
+                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {       //No
+                                // User cancelled the dialog
+                                dialog.dismiss();
                             }
-                        }
-                        else {
-                            showError("Location already linked to another Shopping list");
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+                    } else {
+                        if (shopID != 0) {
+                            if (!data.get(position).isGeofenced()) {
+                                if (!dataBase.checkListIsGeofenced(shopID)) {
+                                    addGeofence(shopID, location, position);
+                                } else {
+                                    showError("Only 1 shop allowed to be geofenced at a time");
+                                }
+                            } else {
+                                showError("Location already linked to another Shopping list");
+                            }
+                        } else {
+                            showError("No shopping list to link");
                         }
                     }
-                    else{
-                        showError("No shopping list to link");
-                    }
+                }
+                else{
+                    Toast.makeText(context, "Location services are disabled. Please enable location services.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -215,5 +220,20 @@ public class LocationListViewAdapter extends BaseAdapter {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    public static Boolean isLocationEnabled(Context context)
+    {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+// This is new method provided in API 28
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+        } else {
+// This is Deprecated in API 28
+            int mode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return  (mode != Settings.Secure.LOCATION_MODE_OFF);
+
+        }
     }
 }

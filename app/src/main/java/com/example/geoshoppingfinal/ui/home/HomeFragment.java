@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
 
-    //private ShoppingListViewAdapter adapter;
     private RecyclerView recyclerView;                                  //Recycle view for card view
     private RecyclerView.Adapter adapter;                              //Adapter for card view
     private RecyclerView.LayoutManager mLayoutManager;                  //Layout manager for card view
@@ -41,10 +41,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainViewModel =
-                ViewModelProviders.of(getActivity()).get(MainViewModel.class);
-        mainViewModel.addTitle("Shopping Lists");
-        //setHasOptionsMenu(true);
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -65,34 +61,8 @@ public class HomeFragment extends Fragment {
                 addShopList();
             }
         });
-/*        FloatingActionButton fab = getActivity().findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DialogBox newFragment = new DialogBox();
-                newFragment.show(getActivity().getSupportFragmentManager(), "DIALOG");
-            }
-        });*/
         HomeViewModel model = ViewModelProviders.of(getActivity()).get(HomeViewModel.class);
-/*        model.getSelected().observe(this, new Observer<Item>() {
-            @Override
-            public void onChanged(@Nullable Item item) {
-                if (new DataBase(getActivity()).saveListItem(item)) {
-                    Toast.makeText(getActivity(), "Saved!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getActivity(), "Not Saved", Toast.LENGTH_SHORT).show();
-                }
-                loadData();
-            }
-        });*/
 
-/*        ((MainActivity)getActivity()).setFragmentRefreshListener(new MainActivity.FragmentRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadData(0);
-                // Refresh Your Fragment
-            }
-        });*/
         return root;
     }
 
@@ -106,12 +76,16 @@ public class HomeFragment extends Fragment {
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {           //Yes
                 if(!shopName.getText().toString().isEmpty()){
-                    int itemID = dataBase.saveShopList(new ShoppingList(shopName.getText().toString()));
-                    if(itemID > 0){
-                        loadData(0);
-                        dialog.dismiss();
+                    if(!dataBase.checkShoppingListExist(shopName.getText().toString())) {
+                        int itemID = dataBase.saveShopList(new ShoppingList(shopName.getText().toString()));
+                        if (itemID > 0) {
+                            loadData(0);
+                            dialog.dismiss();
+                        }
                     }
-
+                    else{
+                        Toast.makeText(getContext(), "Item already exists!", Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         });
@@ -136,42 +110,10 @@ public class HomeFragment extends Fragment {
                 ((MainActivity) getActivity()).openShopListFragment(root, list.get(position).getShoppingListID());
             }
         });
-/*        if(list.size() > 0) {
-
-        }*/
     }
-
-/*
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.sort, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-*/
-
-/*    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.action_asc:
-                loadData(1);
-                return true;
-            case R.id.action_desc:
-                loadData(2);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }*/
 
     private void loadData(int sort) {
         list = dataBase.retrieveShopList();
-/*        if(list.size() > 0) {
-            adapter = new ShoppingListViewAdapter(getContext(), list);             //List view displaying items
-        }
-        else{
-            adapter = new EmptyShoppingListViewAdapter();
-        }*/
         if (list.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             emptyView.setVisibility(View.VISIBLE);

@@ -11,11 +11,11 @@
 
     <TextView
         android:id="@+id/emptyElement"
-        style="?android:listSeparatorTextViewStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/empty_list"
         android:textSize="20sp"
+        android:paddingStart="10dp"
         android:textStyle="bold" />
 <!--    <TextView
         android:id="@+id/text_slideshow"

@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
@@ -16,12 +18,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 
-import android.view.MenuItem;
-import android.view.View;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
@@ -29,19 +36,6 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.drawerlayout.widget.DrawerLayout;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity
     implements ShoppingListViewAdapter.LinkShops,
@@ -51,7 +45,6 @@ public class MainActivity extends AppCompatActivity
     private NavController navController;
     private DrawerLayout drawer;
     private GeofencingClient geofencingClient;
-    //private PendingIntent geofencePendingIntent;
     private ArrayList<Geofence> geofences;
     private MainViewModel mainViewModel;
     private DataBase dataBase;
@@ -85,32 +78,14 @@ public class MainActivity extends AppCompatActivity
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow,
+                R.id.nav_home, R.id.nav_slideshow,
                 R.id.nav_tools, R.id.nav_share, R.id.nav_send)
                 .setDrawerLayout(drawer)
                 .build();
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                if(menuItem.getItemId() == R.id.nav_gallery){
-                    //removeGeofences();
-                }
-
-                boolean result = NavigationUI.onNavDestinationSelected(menuItem, navController);
-                drawer.closeDrawers();
-                return result;
-            }
-        });
         final FloatingActionButton fab = this.findViewById(R.id.fab);
-/*        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addItem();
-            }
-        });*/
         navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
             @Override
             public void onDestinationChanged(@NonNull NavController controller,
@@ -122,11 +97,8 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
-        //checkForNotification();
         dataBase = new DataBase(this);
         dataBase.setupItem();
-
-        //removeGeofences();
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
         mainViewModel.getText().observe(this, new Observer<String>() {
             @Override
@@ -140,7 +112,6 @@ public class MainActivity extends AppCompatActivity
             Location location = dataBase.getLocation(shopID);
             int shopListID = location.getShoppingListID();
             location.setGeofenced(false);
-            //location.setShoppingListID(-1);
             if(dataBase.updateLocation(location)) {
                 removeGeofenceData(shopID);
                 Bundle bundle = new Bundle();
@@ -191,7 +162,6 @@ public class MainActivity extends AppCompatActivity
                 Location location = dataBase.getLocation(shopID);
                 int shopListID = location.getShoppingListID();
                 location.setGeofenced(false);
-                //location.setShoppingListID(-1);
                 if(dataBase.updateLocation(location)) {
                     removeGeofenceData(shopID);
                     Bundle bundle = new Bundle();
@@ -206,39 +176,11 @@ public class MainActivity extends AppCompatActivity
         void onRefresh();
     }
 
-/*    @Override   //On resume method that holds a click listener that opens item list of specific shopping list when card is clicked
-    protected void onResume() {
-        super.onResume();
-        ((ShoppingListViewAdapter) mAdapter).setOnItemClickListener(new ShoppingListViewAdapter
-                .MyClickListener() {
-            @Override
-            public void onItemClick(int position, View v) {
-                Fragment fragment = new SendFragment();
-                Bundle args = new Bundle();
-                args.putInt(KEY_PRODUCT_ID, productId);
-                fragment.setArguments(args);
-
-                getSupportFragmentManager().beginTransaction()
-                        .addToBackStack(ProductDetailsFragment.TAG)
-                        .replace(R.id.fragment_container, fragment, ProductDetailsFragment.TAG)
-                        .commit();
-            }
-        });
-    }*/
-
     //Method that opens link shop activity from the card adapter
     public void addItem(){
         Intent intent = new Intent(this, AddItemActivity.class);
-        //intent.putExtra("shopListID", id);
         startActivityForResult(intent, REQUEST_CODE_ITEM);
     }
-
-/*    private void checkForNotification(){
-        String intent = getIntent().getStringExtra("geofenceID");
-        if(intent != null){
-            removeGeofence();
-        }
-    }*/
 
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
@@ -256,73 +198,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-/*    private void showPlacePicker() {
-        PingPlacePicker.IntentBuilder builder = new PingPlacePicker.IntentBuilder();
-        builder.setAndroidApiKey(getString(R.string.ANDROID_API_KEY))
-                .setMapsApiKey(getString(R.string.MAPS_API_KEY));
-
-        // If you want to set a initial location rather then the current device location.
-        // NOTE: enable_nearby_search MUST be true.
-        // builder.setLatLng(new LatLng(37.4219999, -122.0862462))
-
-        try {
-            Intent placeIntent = builder.build(this);
-            startActivityForResult(placeIntent, REQUEST_CODE_PLACE);
-        }
-        catch (Exception ex) {
-            Toast.makeText(this, "Google Play services is not available...", Toast.LENGTH_SHORT).show();
-        }
-    }*/
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-/*        if ((requestCode == REQUEST_CODE_PLACE) && (resultCode == RESULT_OK)) {
-            Place place = PingPlacePicker.getPlace(data);
-            if (place != null) {
-                DataBase dataBase = new DataBase(this);
-                Location location = new Location(place.getName(), place.getLatLng().latitude, place.getLatLng().longitude);
-                if(!dataBase.checkLocationExist(location)) {
-                    int id = dataBase.saveLocation(location);
-                    if (id != 0) {
-                        Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
-                        GeoFenceInterface(place.getLatLng(), id + "");
-                        addGeofence();
-                    } else {
-                        Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                else {
-                    Toast.makeText(this, "Place already geofenced!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }*/
-/*        else if((requestCode == REQUEST_CODE_ITEM) && (resultCode == RESULT_OK)){
-            ItemList item = new ItemList(data.getIntExtra("quantity", -1), data.getIntExtra("id", -1), data.getIntExtra("shopID", -1));
-            DataBase db = new DataBase(this);
-            int values[] = db.checkItemListExist(item.getItemID(), item.getShoppingListID());
-            if(values[0] == 0){
-                if(db.saveListItem(item)){
-                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
-                    if(getFragmentRefreshListener()!= null){
-                        getFragmentRefreshListener().onRefresh();
-                    }
-                }
-                else {
-                    Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
-                }
-            }
-            else {
-                item.setItemListID(values[0]);
-                item.setQuantity(item.getQuantity() + values[1]);
-                if (db.updateListItem(item)) {
-                    Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
-                    if(getFragmentRefreshListener()!= null){
-                        getFragmentRefreshListener().onRefresh();
-                    }
-                }
-            }
-        }*/
     }
 
     public void createGeofence(LatLng latLng, String id){
@@ -344,32 +222,11 @@ public class MainActivity extends AppCompatActivity
         return builder.build();
     }
 
-/*    public void removeGeofences(){
-        geofencingClient.removeGeofences(getGeofencePendingIntent())
-                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(getApplicationContext(), "Geofences removed", Toast.LENGTH_SHORT).show();
-                        // Geofences removed
-                        // ...
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "Failed to remove geofences", Toast.LENGTH_SHORT).show();
-                        // Failed to remove geofences
-                        // ...
-                    }
-                });
-    }*/
-
     public void removeGeofencePending(int id){
         geofencingClient.removeGeofences(getGeofencePendingIntent(id))
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Toast.makeText(getApplicationContext(), "Geofences Pending removed", Toast.LENGTH_SHORT).show();
                         // Geofences removed
                         // ...
                     }
@@ -377,7 +234,7 @@ public class MainActivity extends AppCompatActivity
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "Failed to remove geofences", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Failed to remove geofences. Make sure location services are enabled.", Toast.LENGTH_SHORT).show();
                         // Failed to remove geofences
                         // ...
                     }
@@ -389,7 +246,6 @@ public class MainActivity extends AppCompatActivity
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Toast.makeText(getApplicationContext(), "Geofences ID removed", Toast.LENGTH_SHORT).show();
                         // Geofences removed
                         // ...
                     }
@@ -397,7 +253,7 @@ public class MainActivity extends AppCompatActivity
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "Failed to remove geofences", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Failed to remove geofences. Make sure location services are enabled.", Toast.LENGTH_SHORT).show();
                         // Failed to remove geofences
                         // ...
                     }
@@ -409,7 +265,6 @@ public class MainActivity extends AppCompatActivity
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Toast.makeText(getApplicationContext(), "Geofence added!", Toast.LENGTH_SHORT).show();
                         // Geofences added
                         // ...
                     }
@@ -417,7 +272,7 @@ public class MainActivity extends AppCompatActivity
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "Failed to add geofence!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Failed to add geofence. Make sure location services are enabled.", Toast.LENGTH_SHORT).show();
                         // Failed to add geofences
                         // ...
                     }
@@ -427,24 +282,12 @@ public class MainActivity extends AppCompatActivity
 
 
     private PendingIntent getGeofencePendingIntent(int requestCode) {
-        // Reuse the PendingIntent if we already have it.
-/*        if (geofencePendingIntent != null) {
-            return geofencePendingIntent;
-        }*/
         Context context = this;
         Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeGeofences().
         return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        //return geofencePendingIntent;
     }
-
-/*    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items  to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.sort, menu);
-        return true;
-    }*/
 
     @Override
     public boolean onSupportNavigateUp() {

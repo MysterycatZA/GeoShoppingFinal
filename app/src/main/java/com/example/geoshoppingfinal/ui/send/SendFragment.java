@@ -12,15 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.Nullable;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 
 import com.example.geoshoppingfinal.AddItemActivity;
 import com.example.geoshoppingfinal.DataBase;
@@ -30,12 +21,15 @@ import com.example.geoshoppingfinal.Location;
 import com.example.geoshoppingfinal.MainActivity;
 import com.example.geoshoppingfinal.MainViewModel;
 import com.example.geoshoppingfinal.R;
-import com.example.geoshoppingfinal.ShoppingList;
-import com.example.geoshoppingfinal.ui.home.HomeViewModel;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 
 public class SendFragment extends Fragment {
 
@@ -43,21 +37,21 @@ public class SendFragment extends Fragment {
     private ListView listView;
     private ArrayList<ItemList> list;
     private int shopID;
+    private String fragmentTitle;
     private MainViewModel mainViewModel;
     private DataBase dataBase;
-    //SendFragmentArgs args;
     private static final int REQUEST_CODE_ITEM = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //args = SendFragmentArgs.fromBundle(requireArguments());
         dataBase = new DataBase(getContext());
         shopID = getArguments().getInt("shopID");
         String title = dataBase.getShopListName(shopID);
         mainViewModel =
                 ViewModelProviders.of(getActivity()).get(MainViewModel.class);
-        mainViewModel.addTitle(title + " List");
+        fragmentTitle = title + " List";
+        mainViewModel.addTitle(fragmentTitle);
         setHasOptionsMenu(true);
     }
 
@@ -73,30 +67,8 @@ public class SendFragment extends Fragment {
                 addItem();
             }
         });
-/*        if(shopID != 0){
-            shopID = args.getShopID();
-        }*/
         loadData(0, shopID);
-/*        FloatingActionButton fab = getActivity().findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DialogBox newFragment = new DialogBox();
-                newFragment.show(getActivity().getSupportFragmentManager(), "DIALOG");
-            }
-        });*/
         SendViewModel model = ViewModelProviders.of(getActivity()).get(SendViewModel.class);
-/*        model.getSelected().observe(this, new Observer<Item>() {
-            @Override
-            public void onChanged(@Nullable Item item) {
-                if (new DataBase(getActivity()).saveListItem(item)) {
-                    Toast.makeText(getActivity(), "Saved!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getActivity(), "Not Saved", Toast.LENGTH_SHORT).show();
-                }
-                loadData();
-            }
-        });*/
 
         ((MainActivity)getActivity()).setFragmentRefreshListener(new MainActivity.FragmentRefreshListener() {
             @Override
@@ -120,37 +92,14 @@ public class SendFragment extends Fragment {
                     autoGeofenceHistory(dataBase.getLocation(lastLocationID));
                 }
             }
-/*            ItemList item = new ItemList(data.getIntExtra("quantity", -1), data.getIntExtra("id", -1), data.getIntExtra("shopID", -1));
-            DataBase db = new DataBase(getContext());
-            int values[] = db.checkItemListExist(item.getItemID(), item.getShoppingListID());
-            if(values[0] == 0){
-                if(db.saveListItem(item)){
-                    Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
-                    loadData(0, shopID);
-                }
-                else {
-                    Toast.makeText(getContext(), "Not Saved", Toast.LENGTH_SHORT).show();
-                }
-            }
-            else {
-                item.setItemListID(values[0]);
-                item.setQuantity(item.getQuantity() + values[1]);
-                if (db.updateListItem(item)) {
-                    Toast.makeText(getContext(), "Updated!", Toast.LENGTH_SHORT).show();
-                    loadData(0, shopID);
-                }
-            }*/
         }
-/*        if(requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            //some code
-        }*/
     }
 
     public void autoGeofenceHistory(final Location location){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Do you want to Geofence this previous Location?");
         builder.setMessage(location.getName());
-// Add the buttons
+        // Add the buttons
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 if(location.isGeofenced()){
@@ -199,21 +148,6 @@ public class SendFragment extends Fragment {
         intent.putExtra("shopListID", shopID);
         startActivityForResult(intent, REQUEST_CODE_ITEM);
     }
-
-/*    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        sendViewModel =
-                ViewModelProviders.of(this).get(SendViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_send, container, false);
-        final TextView textView = root.findViewById(R.id.text_send);
-        sendViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });
-        return root;
-    }*/
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {

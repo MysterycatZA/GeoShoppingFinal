@@ -6,7 +6,10 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -92,14 +95,34 @@ public class SlideshowFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                progressDialog.show();
-                showPlacePicker();
+                if(isLocationEnabled(getContext())) {
+                    progressDialog.show();
+                    showPlacePicker();
+                }
+                else{
+                    Toast.makeText(getActivity(), "Location services are disabled. Please enable location services.", Toast.LENGTH_LONG).show();
+                }
             }
         });
         listView = (ListView) root.findViewById(R.id.locationListView);
         listView.setEmptyView(root.findViewById(R.id.emptyElement));
         loadData(false);
         return root;
+    }
+
+    public static Boolean isLocationEnabled(Context context)
+    {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        // This is new method provided in API 28
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+        } else {
+        // This is Deprecated in API 28
+            int mode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return  (mode != Settings.Secure.LOCATION_MODE_OFF);
+
+        }
     }
 
     private void showPlacePicker() {
@@ -182,7 +205,6 @@ public class SlideshowFragment extends Fragment {
                     //location.setShoppingListID(shopID);
                     int id = dataBase.saveLocation(location);
                     if (id != 0) {
-                        Toast.makeText(getContext(), "Saved!", Toast.LENGTH_SHORT).show();
                         if(shopID > 0) {
                             geofenceLocation(place.getLatLng(), id);
                         }

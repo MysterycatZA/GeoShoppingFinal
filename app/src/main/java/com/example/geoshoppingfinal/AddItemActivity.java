@@ -1,9 +1,5 @@
 package com.example.geoshoppingfinal;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.app.ActionBar;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,7 +20,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 
-import javax.microedition.khronos.egl.EGLDisplay;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class AddItemActivity extends AppCompatActivity
             implements ItemViewAdapter.AddItem{
@@ -65,14 +62,20 @@ public class AddItemActivity extends AppCompatActivity
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {           //Yes
                 if(!itemNameEdit.getText().toString().isEmpty() && !quantity.getText().toString().isEmpty()){
-                    int amount = Integer.parseInt(quantity.getText().toString());
-                    String name = itemNameEdit.getText().toString();
-                    int itemID = dataBase.saveItem(new Item(name));
-                    if(itemID > 0){
-                        sendItem(amount, itemID);
-                        dialog.dismiss();
+                    if(!dataBase.checkItemExist(itemNameEdit.getText().toString())) {
+                        int amount = Integer.parseInt(quantity.getText().toString());
+                        String name = itemNameEdit.getText().toString();
+                        String cap = name.substring(0, 1).toUpperCase() + name.substring(1);
+                        String fullName = cap + name.substring(1);
+                        int itemID = dataBase.saveItem(new Item(fullName));
+                        if (itemID > 0) {
+                            sendItem(amount, itemID);
+                            dialog.dismiss();
+                        }
                     }
-
+                    else{
+                        Toast.makeText(getBaseContext(), "Item already exists!", Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         });
@@ -112,17 +115,6 @@ public class AddItemActivity extends AppCompatActivity
 
             @Override
             public boolean onQueryTextChange(String newText) {
-/*                boolean search = true;
-                int i = 0;
-                while(search && i < list.size()){
-                    if(!list.get(i).isSeparator() && list.get(i).getName().equalsIgnoreCase(newText)){
-                        ItemViewAdapter adapter = new ItemViewAdapter(AddItemActivity.this, list);
-                        ListView listView = (ListView) findViewById(R.id.itemView);
-                        listView.setAdapter(adapter);
-                        search = false;
-                    }
-                    i++;
-                }*/
                 if(newText != null && !newText.isEmpty()){                                  //If the search text is not null or empty
                     searchList = new ArrayList<Item>();                                    //Search array list
                     for(int i = 0; i < list.size(); i++){               //Looping through every anime object in the array list
@@ -148,14 +140,10 @@ public class AddItemActivity extends AppCompatActivity
 
     //Method that opens link shop activity from the card adapter
     public void sendItem(int quantity, int id){
-        //ItemList item = new ItemList(data.getIntExtra("quantity", -1), data.getIntExtra("id", -1), data.getIntExtra("shopID", -1));
         ItemList item = new ItemList(quantity, id, shopID);
         int values[] = dataBase.checkItemListExist(item.getItemID(), item.getShoppingListID());
         if(values[0] == 0){
-            if(dataBase.saveListItem(item)){
-                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
-            }
-            else {
+            if(!dataBase.saveListItem(item)){
                 Toast.makeText(this, "Not Saved", Toast.LENGTH_SHORT).show();
             }
         }
@@ -167,9 +155,6 @@ public class AddItemActivity extends AppCompatActivity
             }
         }
         Intent intent = new Intent();
-/*        intent.putExtra("quantity", quantity);
-        intent.putExtra("id", id);
-        intent.putExtra("shopID", id);*/
         setResult(RESULT_OK, intent);
         finish();
     }
