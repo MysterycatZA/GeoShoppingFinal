@@ -80,24 +80,6 @@ public class ItemListViewAdapter extends BaseAdapter {
     }
 
     private void addSeparator(){
-/*        boolean found = false;
-        int index = 0;
-        while(!found && index < data.size()){
-            if(data.get(index).isSeparator()){
-                data.remove(index);
-                found = true;
-            }
-            index++;
-        }*/
-
-/*        Iterator<ItemList> i = data.iterator();
-        while (i.hasNext()) {
-            ItemList itemList = i.next(); // must be called before you can call i.remove()
-            if(itemList.isSeparator()){
-                data.remove(itemList);
-                i.remove();
-            }
-        }*/
         boolean found = false;
         int index = 0;
         while(!found && index < data.size()){

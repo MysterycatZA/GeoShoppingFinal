@@ -15,6 +15,7 @@ import android.widget.ListView;
 
 import com.example.geoshoppingfinal.AddItemActivity;
 import com.example.geoshoppingfinal.DataBase;
+import com.example.geoshoppingfinal.Item;
 import com.example.geoshoppingfinal.ItemList;
 import com.example.geoshoppingfinal.ItemListViewAdapter;
 import com.example.geoshoppingfinal.Location;
@@ -40,6 +41,7 @@ public class SendFragment extends Fragment {
     private String fragmentTitle;
     private MainViewModel mainViewModel;
     private DataBase dataBase;
+    private ArrayList<Item> itemToAddSuggestedList;
     private static final int REQUEST_CODE_ITEM = 2;
 
     @Override
@@ -67,8 +69,14 @@ public class SendFragment extends Fragment {
                 addItem();
             }
         });
-        loadData(0, shopID);
-        SendViewModel model = ViewModelProviders.of(getActivity()).get(SendViewModel.class);
+        list = dataBase.retrieveListItems(0, shopID);
+        if(list.size() > 0){
+            loadData(0, shopID);
+        }
+        else {
+            loadSuggested();
+        }
+/*        SendViewModel model = ViewModelProviders.of(getActivity()).get(SendViewModel.class);
 
         ((MainActivity)getActivity()).setFragmentRefreshListener(new MainActivity.FragmentRefreshListener() {
             @Override
@@ -76,9 +84,72 @@ public class SendFragment extends Fragment {
                 loadData(0, shopID);
                 // Refresh Your Fragment
             }
-        });
+        });*/
         return root;
     }
+
+    public void loadSuggested(){
+        ArrayList<Item> itemArrayList = dataBase.getSuggestedItems(shopID);
+        if(itemArrayList.size() > 0) {
+            itemToAddSuggestedList = new ArrayList<>();
+            itemToAddSuggestedList.clear();
+            displaySuggested(itemArrayList);
+        }
+    }
+
+    public void displaySuggested(final ArrayList<Item> itemArrayList){
+
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Suggested Items");
+
+        // add a checkbox list
+        String[] items = new String[itemArrayList.size()];
+        for (int i = 0; i < items.length; i++){
+            items[i] = itemArrayList.get(i).getName();
+        }
+        builder.setMultiChoiceItems(items, null, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                // user checked or unchecked a box
+                suggestedItemChecked(which, isChecked, itemArrayList);
+            }
+        });
+
+        // add OK and Cancel buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                addSuggested();
+                // user clicked OK
+
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public void suggestedItemChecked(int which, boolean isChecked, ArrayList<Item> itemArrayList){
+        if(isChecked) {
+            itemToAddSuggestedList.add(itemArrayList.get(which));
+        }
+        else{
+            itemToAddSuggestedList.remove(which);
+        }
+    }
+
+    public void addSuggested(){
+        for (Item item: itemToAddSuggestedList) {
+            ItemList itemList = new ItemList(1, item.getItemID(), shopID);
+            dataBase.saveListItem(itemList);
+        }
+        loadData(0, shopID);
+    }
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -87,9 +158,20 @@ public class SendFragment extends Fragment {
         if(requestCode == REQUEST_CODE_ITEM){
             loadData(0, shopID);
             if(resultCode == Activity.RESULT_OK){
-                int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
-                if (list.size() == 1 && lastLocationID != 0 && !dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
-                    autoGeofenceHistory(dataBase.getLocation(lastLocationID));
+                if(list.size() == 1) {
+                    int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
+                    if (lastLocationID != 0) {
+                        if (!dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
+                            autoGeofenceHistory(dataBase.getLocation(lastLocationID));
+                        }
+                    } else {
+                        if (!dataBase.checkListIsGeofenced(shopID)) {
+                            Location location = dataBase.getLocation(dataBase.getItemLocationHistory(data.getIntExtra("itemID", 0)));
+                            if(location.getLocationID() != -1){
+                                autoGeofenceHistory(location);
+                            }
+                        }
+                    }
                 }
             }
         }

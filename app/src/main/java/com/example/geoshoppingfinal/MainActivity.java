@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<Geofence> geofences;
     private MainViewModel mainViewModel;
     private DataBase dataBase;
+    private SharedPreferences prefs;
     //Constants
     private static final float GEOFENCE_RADIUS = 300.0f; // in meters
     private static final String CHANNEL_ID = "Geofence";

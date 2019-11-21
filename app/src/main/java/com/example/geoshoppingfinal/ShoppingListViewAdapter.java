@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 //Card adapter to display shopping list item on the card view from the shopping list array list
 public class ShoppingListViewAdapter extends RecyclerView
         .Adapter<ShoppingListViewAdapter
-        .DataObjectHolder> {
+        .DataObjectHolder>{
     private ArrayList<ShoppingList> mDataset;                       //Data set
     private static MyClickListener myClickListener;                //Card listener
     public LinkShops linkShops;                                     //Link shop interface
@@ -100,6 +100,7 @@ public class ShoppingListViewAdapter extends RecyclerView
 // Add the buttons
                 builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+
                         int position = (int) view.findViewById(R.id.link_button).getTag();
                         int shopID = (int) view.findViewById(R.id.delete_button).getTag();
                         deleteItem(position, shopID);
@@ -151,6 +152,7 @@ public class ShoppingListViewAdapter extends RecyclerView
                 }
                 mDataset.remove(index);
                 notifyItemRemoved(index);
+                notifyItemRangeChanged(index, mDataset.size());
             }
         }
     }

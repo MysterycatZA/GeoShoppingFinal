@@ -155,6 +155,7 @@ public class AddItemActivity extends AppCompatActivity
             }
         }
         Intent intent = new Intent();
+        intent.putExtra("itemID", id);
         setResult(RESULT_OK, intent);
         finish();
     }

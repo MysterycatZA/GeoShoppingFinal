@@ -121,9 +121,10 @@ public class LocationListViewAdapter extends BaseAdapter {
                         if (shopID != 0) {
                             if (!data.get(position).isGeofenced()) {
                                 if (!dataBase.checkListIsGeofenced(shopID)) {
+                                    dataBase.saveHistory(shopID, location.getLocationID());
                                     addGeofence(shopID, location, position);
                                 } else {
-                                    showError("Only 1 shop allowed to be geofenced at a time");
+                                    showError("Only 1 shop allowed to be geofenced to a shopping list at a time");
                                 }
                             } else {
                                 showError("Location already linked to another Shopping list");
@@ -187,6 +188,7 @@ public class LocationListViewAdapter extends BaseAdapter {
     public boolean removeLocation(Location location){
         DataBase dataBase = new DataBase(context);
         if(dataBase.deleteLocation(location)){
+            dataBase.deleteHistoryLocationID(location.getLocationID());
             geoFenceInterface  = (GeoFenceInterface) context;
             geoFenceInterface.removeGeofenceData(location.getLocationID());
             return true;

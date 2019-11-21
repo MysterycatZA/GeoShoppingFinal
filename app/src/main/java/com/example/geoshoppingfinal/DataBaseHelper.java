@@ -16,7 +16,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     // Constructor
     public DataBaseHelper(Context context)
     {
-        super(context, "geo_DB", null, 4);
+        super(context, "geo_DB", null, 7);
         this.context = context;
     }
 
@@ -30,6 +30,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_LOCATION));
             db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_ITEM));
             db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_SHOPPING_LIST));
+            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_HISTORY));
         }catch (SQLException e)
         {
             e.printStackTrace();
@@ -49,6 +50,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_ITEM));
             db.execSQL("DROP TABLE IF EXISTS Shopping");
             db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_SHOPPING_LIST));
+            db.execSQL("DROP TABLE IF EXISTS History");
+            db.execSQL(context.getResources().getString(R.string.CREATE_TABLE_HISTORY));
 
         }catch (SQLException e)
         {
