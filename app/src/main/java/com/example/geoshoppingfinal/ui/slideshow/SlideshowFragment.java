@@ -159,8 +159,8 @@ public class SlideshowFragment extends Fragment {
         searchView.setIconifiedByDefault(false);
         searchView.setFocusable(true);
         searchView.setIconified(false);
-        searchView.clearFocus();
-        searchView.requestFocusFromTouch();
+        //searchView.clearFocus();
+        searchView.requestFocus();//.requestFocusFromTouch();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {

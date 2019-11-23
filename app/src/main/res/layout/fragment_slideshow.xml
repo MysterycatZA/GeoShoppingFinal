@@ -13,9 +13,10 @@
         android:id="@+id/emptyElement"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/empty_list"
+        android:text="@string/empty_list_location"
         android:textSize="20sp"
         android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:textStyle="bold" />
 <!--    <TextView
         android:id="@+id/text_slideshow"

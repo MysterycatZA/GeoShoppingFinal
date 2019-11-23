@@ -129,6 +129,11 @@ public class ShoppingListViewAdapter extends RecyclerView
         holder.linkShops.setTag(position);                                      //Setting current posistion in card view in tag
         holder.label.setTag(mDataset.get(position).getName());
         if(mDataset.get(position).checkIfGeofenced(context)){
+            holder.label.setTextColor(Color.parseColor("#FFFFFF"));
+            holder.bought.setTextColor(Color.parseColor("#FFFFFF"));
+            holder.total.setTextColor(Color.parseColor("#FFFFFF"));
+            holder.linkShops.setImageResource(R.drawable.baseline_link_white_18dp);
+            holder.deleteImage.setImageResource(R.drawable.baseline_delete_outline_white_18dp);
             holder.cardView.setBackgroundColor(Color.parseColor("#4CAF50"));
         }
     }

@@ -12,9 +12,10 @@
         android:id="@+id/emptyElement"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/empty_list"
+        android:text="@string/empty_list_list"
         android:textSize="20sp"
         android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:textStyle="bold" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

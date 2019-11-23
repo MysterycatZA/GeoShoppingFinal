@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_toLeftOf="@+id/link_button"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_delete_black" />
+                android:src="@drawable/baseline_delete_outline_black_18dp" />
 
             <ImageView
                 android:id="@+id/link_button"

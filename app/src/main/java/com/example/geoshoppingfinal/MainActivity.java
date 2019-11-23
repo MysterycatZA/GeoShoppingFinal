@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<Geofence> geofences;
     private MainViewModel mainViewModel;
     private DataBase dataBase;
-    private SharedPreferences prefs;
+    private SharedPreferences sharedpreferences;
     //Constants
     private static final float GEOFENCE_RADIUS = 300.0f; // in meters
     private static final String CHANNEL_ID = "Geofence";
@@ -81,12 +82,25 @@ public class MainActivity extends AppCompatActivity
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_slideshow,
-                R.id.nav_tools, R.id.nav_share, R.id.nav_send)
+                R.id.nav_share, R.id.nav_send)
                 .setDrawerLayout(drawer)
                 .build();
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                if(menuItem.getItemId() == R.id.nav_tools){
+                    Intent intent = new Intent(getApplicationContext(), HelpActivity.class);
+                    startActivity(intent);
+                }
+
+                boolean result = NavigationUI.onNavDestinationSelected(menuItem, navController);
+                drawer.closeDrawers();
+                return result;
+            }
+        });
         final FloatingActionButton fab = this.findViewById(R.id.fab);
         navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
             @Override
@@ -120,6 +134,18 @@ public class MainActivity extends AppCompatActivity
                 bundle.putInt("shopID", shopListID);
                 navController.navigate(R.id.nav_send, bundle);
             }
+        }
+        sharedpreferences = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (sharedpreferences.getBoolean("firstrun", true)) {
+            // Do first run stuff here then set 'firstrun' as false
+            // using the following line to edit/commit prefs
+            sharedpreferences.edit().putBoolean("firstrun", false).commit();
         }
     }
 

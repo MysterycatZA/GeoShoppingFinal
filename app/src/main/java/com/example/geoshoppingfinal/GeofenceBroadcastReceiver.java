@@ -54,7 +54,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 // Send notification and log the transition details.
                 String geofenceID = geofence.getRequestId();
                 Location location = dataBase.getLocation(Integer.parseInt(geofenceID));
-                String shopName = location.getName();
+                String shopName = dataBase.getShopList(location.getShoppingListID()).getName();
                 boolean geofenced = location.isGeofenced();
                 if(!shopName.isEmpty() && geofenced) {
                     sendNotification(context, geofenceID, shopName);
@@ -90,8 +90,8 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.baseline_beenhere_black_18dp)
                 .setColor(Color.GREEN)
-                .setContentTitle("Shop Notification")
-                .setContentText("Click to open " + message + " shopping list")
+                .setContentTitle("You've reached your shopping list destination!")
+                .setContentText("Tap here to open " + message + " list")
                 .setContentIntent(notificationPendingIntent)
                 .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND)
                 .setAutoCancel(true)

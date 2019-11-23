@@ -31,5 +31,5 @@ android:padding="12dp">
         android:layout_alignParentRight="true"
         android:paddingTop="4dp"
         android:scaleType="fitXY"
-        android:src="@drawable/ic_delete_black" />
+        android:src="@drawable/baseline_delete_outline_black_18dp" />
 </RelativeLayout>

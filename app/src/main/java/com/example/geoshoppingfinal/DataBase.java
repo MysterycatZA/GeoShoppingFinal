@@ -581,7 +581,7 @@ public class DataBase {
                 // If it is the first item then need a separator
                 if (position == 0) {
                     isSeparator = true;
-                    nameArray = name.toLowerCase().toCharArray();
+                    nameArray = name.toCharArray();
                 }
                 else {
                     // Move to previous
@@ -592,8 +592,8 @@ public class DataBase {
 
                     // Convert the previous and current contact names
                     // into char arrays
-                    char[] previousNameArray = previousName.toLowerCase().toCharArray();
-                    nameArray = name.toLowerCase().toCharArray();
+                    char[] previousNameArray = previousName.toCharArray();
+                    nameArray = name.toCharArray();
 
                     // Compare the first character of previous and current contact names
                     if (nameArray[0] != previousNameArray[0]) {

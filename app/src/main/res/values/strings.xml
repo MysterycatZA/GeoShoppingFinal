@@ -8,7 +8,7 @@
     <string name="action_asc">Ascending</string>
     <string name="action_desc">Descending</string>
 
-    <string name="menu_home">Shopping Lists</string>
+    <string name="menu_home">My Shopping Lists</string>
     <string name="menu_gallery">Add Shop</string>
     <string name="menu_slideshow">Shop List</string>
     <string name="menu_tools">Help</string>
@@ -29,5 +29,8 @@
     <string name="ANDROID_API_KEY">AIzaSyAaOSozlNmzZcjQ_8rgnSiZ1CX92wuskus</string>
     <string name="MAPS_API_KEY">AIzaSyDaDQRoc087nDE5_vfvwOGyYGCNRhNH4s4</string>
     <string name="HISTORY_TABLE">History</string>
-    <string name="empty_list">Nothing here!\nClick the plus button at the bottom to add</string>
+    <string name="empty_list_home">Oops nothing here.\nTap the plus button at the bottom to start.</string>
+    <string name="empty_list_list">Empty shopping list.\nTap the plus button at the bottom to add an item.</string>
+    <string name="empty_list_item">No items.\nTap the plus button at the bottom to add an item.</string>
+    <string name="empty_list_location">No locations.\nTap the plus button at the bottom to add a location.</string>
 </resources>

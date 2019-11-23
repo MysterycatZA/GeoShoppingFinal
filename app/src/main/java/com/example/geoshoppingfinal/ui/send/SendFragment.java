@@ -52,7 +52,7 @@ public class SendFragment extends Fragment {
         String title = dataBase.getShopListName(shopID);
         mainViewModel =
                 ViewModelProviders.of(getActivity()).get(MainViewModel.class);
-        fragmentTitle = title + " List";
+        fragmentTitle = title + " list";
         mainViewModel.addTitle(fragmentTitle);
         setHasOptionsMenu(true);
     }
@@ -146,6 +146,12 @@ public class SendFragment extends Fragment {
             ItemList itemList = new ItemList(1, item.getItemID(), shopID);
             dataBase.saveListItem(itemList);
         }
+        if(itemToAddSuggestedList.size() > 0){
+            int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
+            if (lastLocationID != 0 && !dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
+                autoGeofenceHistory(dataBase.getLocation(lastLocationID));
+            }
+        }
         loadData(0, shopID);
     }
 
@@ -179,7 +185,7 @@ public class SendFragment extends Fragment {
 
     public void autoGeofenceHistory(final Location location){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Do you want to Geofence this previous Location?");
+        builder.setTitle("Do you want to Geofence to this previous Location?");
         builder.setMessage(location.getName());
         // Add the buttons
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {

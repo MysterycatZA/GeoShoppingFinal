@@ -64,10 +64,7 @@ public class AddItemActivity extends AppCompatActivity
                 if(!itemNameEdit.getText().toString().isEmpty() && !quantity.getText().toString().isEmpty()){
                     if(!dataBase.checkItemExist(itemNameEdit.getText().toString())) {
                         int amount = Integer.parseInt(quantity.getText().toString());
-                        String name = itemNameEdit.getText().toString();
-                        String cap = name.substring(0, 1).toUpperCase() + name.substring(1);
-                        String fullName = cap + name.substring(1);
-                        int itemID = dataBase.saveItem(new Item(fullName));
+                        int itemID = dataBase.saveItem(new Item(formatText(itemNameEdit.getText().toString())));
                         if (itemID > 0) {
                             sendItem(amount, itemID);
                             dialog.dismiss();
@@ -89,6 +86,10 @@ public class AddItemActivity extends AppCompatActivity
         dialog.show();
     }
 
+    public String formatText(String name){
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -105,8 +106,8 @@ public class AddItemActivity extends AppCompatActivity
         searchView.setIconifiedByDefault(false);
         searchView.setFocusable(true);
         searchView.setIconified(false);
-        searchView.clearFocus();
-        searchView.requestFocusFromTouch();
+        //searchView.clearFocus();
+        searchView.requestFocus();//.requestFocusFromTouch();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -175,7 +176,7 @@ public class AddItemActivity extends AppCompatActivity
             list = searchList;
 
             if(list.size() < 1){
-                Item item = new Item("Click here to add");
+                Item item = new Item("Tap here to add");
                 item.setAddItem(true);
                 list.add(item);
             }

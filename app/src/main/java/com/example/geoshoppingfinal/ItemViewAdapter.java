@@ -171,7 +171,7 @@ public class ItemViewAdapter extends BaseAdapter {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
                             if(!quantity.getText().toString().isEmpty()){
                                 int amount = Integer.parseInt(quantity.getText().toString());
-                                int itemID = dataBase.saveItem(new Item(searchText));
+                                int itemID = dataBase.saveItem(new Item(formatText(searchText)));
                                 if(itemID > 0){
                                     addItem = (AddItem) parent.getContext();
                                     addItem.sendItem(amount, itemID);
@@ -266,5 +266,9 @@ public class ItemViewAdapter extends BaseAdapter {
         }
 
         return view;
+    }
+
+    public String formatText(String name){
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 }

@@ -8,8 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -153,7 +155,7 @@ public class ItemListViewAdapter extends BaseAdapter {
         else if(data.get(position).isClearBought()){
             view = inflater.inflate(R.layout.clear_item_list, null);
             TextView separatorView = (TextView) view.findViewById(R.id.clear);
-            separatorView.setText("Click here to clear bought");
+            separatorView.setText("Tap here to clear bought items");
             separatorView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -182,6 +184,15 @@ public class ItemListViewAdapter extends BaseAdapter {
 
             final CheckedTextView simpleCheckedTextView = (CheckedTextView) view.findViewById(R.id.nameLabel);
             final ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
+            ImageView editImage = view.findViewById(R.id.edit_button);
+            editImage.setVisibility(View.VISIBLE);
+
+            editImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editItem(position);
+                }
+            });
             // Get the data item
             final ItemList item = data.get(position);
             if (item.isBought()) {
@@ -251,5 +262,40 @@ public class ItemListViewAdapter extends BaseAdapter {
             });
         }
         return view;
+    }
+
+    public void editItem(final int position){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflat = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);;
+        View myView = inflat.inflate(R.layout.dialog_add_item, null);
+        builder.setView(myView);
+        TextView itemName = (TextView) myView.findViewById(R.id.itemName);
+        TextView heading = myView.findViewById(R.id.heading);
+        EditText itemNameEdit = myView.findViewById(R.id.itemNameEdit);
+        final EditText quantity = (EditText) myView.findViewById(R.id.itemQty);
+        heading.setText("Edit Item");
+        itemNameEdit.setVisibility(View.GONE);
+        itemName.setText(data.get(position).getName());
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {           //Yes
+                if(!quantity.getText().toString().isEmpty()){
+                    int amount = Integer.parseInt(quantity.getText().toString());
+                    data.get(position).setQuantity(amount);
+                    if (dataBase.updateListItem(data.get(position))) {
+                        resetView();
+                        Toast.makeText(context, "Updated!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {       //No
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }
