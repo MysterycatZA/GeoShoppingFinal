@@ -2,6 +2,7 @@ package com.example.geoshoppingfinal;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.opengl.Visibility;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,15 +38,16 @@ public class ItemViewAdapter extends BaseAdapter {
     private static final int ITEM_VIEW_TYPE_COUNT = 3;
 
     public interface AddItem{                                     //Interface for sending the position and id of the shopping list back to the main activity
-        void sendItem(int quantity, int id);
+        void sendItem(int quantity, int id, String name);
         void deleteItem();
     }
 
-    public ItemViewAdapter(Context context, ArrayList<Item> list, String searchText) {
+    public ItemViewAdapter(Context context, ArrayList<Item> list, String searchText, AddItem addItem) {
         this.context = context;
         this.data = list;
         this.searchText = searchText;
         this.dataBase = new DataBase(context);
+        this.addItem = addItem;
     }
 
     @Override //Return array list size
@@ -170,14 +172,14 @@ public class ItemViewAdapter extends BaseAdapter {
                     builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
                             if(!quantity.getText().toString().isEmpty()){
-                                int amount = Integer.parseInt(quantity.getText().toString());
-                                int itemID = dataBase.saveItem(new Item(formatText(searchText)));
-                                if(itemID > 0){
-                                    addItem = (AddItem) parent.getContext();
-                                    addItem.sendItem(amount, itemID);
-                                    dialog.dismiss();
+                                if(!dataBase.checkItemExist(formatText(searchText))) {
+                                    int amount = Integer.parseInt(quantity.getText().toString());
+                                    int itemID = dataBase.saveItem(new Item(formatText(searchText)));
+                                    if (itemID > 0) {
+                                        addItem.sendItem(amount, itemID, formatText(searchText));
+                                        dialog.dismiss();
+                                    }
                                 }
-
                             }
                         }
                     });
@@ -196,6 +198,13 @@ public class ItemViewAdapter extends BaseAdapter {
             // If regular
 
             // Set contact name and number
+            TextView linkedShopList = view.findViewById(R.id.linkedList);
+            ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
+            linkedShopList.setText(dataBase.getLinkedItemListNames(item.getItemID()));
+            if(!linkedShopList.getText().toString().isEmpty()) {
+                linkedShopList.setVisibility(View.VISIBLE);
+                deleteImage.setPaddingRelative(0, 24, 0 , 0);
+            }
             TextView itemNameView = (TextView) view.findViewById(R.id.nameLabel);
             itemNameView.setText( item.getName() );
 
@@ -217,8 +226,7 @@ public class ItemViewAdapter extends BaseAdapter {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
                             if(!quantity.getText().toString().isEmpty()){
                                 int amount = Integer.parseInt(quantity.getText().toString());
-                                addItem = (AddItem) parent.getContext();
-                                addItem.sendItem(amount, item.getItemID());
+                                addItem.sendItem(amount, item.getItemID(), item.getName());
                                 dialog.dismiss();
                             }
                         }
@@ -234,7 +242,6 @@ public class ItemViewAdapter extends BaseAdapter {
                 }
             });
 
-            ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
             deleteImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {                       //Delete image click listener that displays a dialog to delete an item
@@ -246,7 +253,7 @@ public class ItemViewAdapter extends BaseAdapter {
                             if (dataBase.deleteItem(item)) {
                                 dataBase.deleteLinkedItemToList(item.getItemID());
                                 dataBase.deleteHistoryItemID(item.getItemID());
-                                addItem = (AddItem) parent.getContext();
+                                //addItem = (AddItem)  parent.getContext();
                                 delete(position);
                                 addItem.deleteItem();
                                 dialog.dismiss();

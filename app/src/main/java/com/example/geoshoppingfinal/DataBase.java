@@ -96,6 +96,32 @@ public class DataBase {
         return false;
     }
 
+    public String getLinkedItemListNames(int itemID){
+        String listNames = "";
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT Shopping.name, List.quantity FROM List join Shopping ON List.shopID = Shopping.id where List.deleted = 0 AND List.itemID = " + itemID,null);
+            StringBuilder stringBuilder = new StringBuilder();
+            while (cursor.moveToNext())
+            {
+                String shopListName = cursor.getString(0);
+                int amount = cursor.getInt(1);
+                stringBuilder.append(shopListName + "(" + amount + ")" + ",");
+            }
+            if(stringBuilder.length() > 0) {
+                listNames = stringBuilder.toString().substring(0, stringBuilder.length() - 1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            helper.close();
+        }
+
+        return listNames;
+    }
+
     public int getItemLocationHistory(int itemID){
         int locationID = - 1;
         boolean found = false;
@@ -117,6 +143,26 @@ public class DataBase {
         }
 
         return locationID;
+    }
+
+    public int getItemListCount(int shopID){
+        int count = 0;
+        try {
+            db = helper.getWritableDatabase();
+
+            Cursor cursor = db.rawQuery("SELECT Count(id) FROM List where deleted = 0 AND shopID = " + shopID,null);
+
+            while (cursor.moveToNext())
+            {
+                count = cursor.getInt(0);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            helper.close();
+        }
+
+        return count;
     }
 
     public int getItemHistoryCount(int itemID, int locationID){

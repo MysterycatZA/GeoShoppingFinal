@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.example.geoshoppingfinal.AddItemActivity;
 import com.example.geoshoppingfinal.DataBase;
 import com.example.geoshoppingfinal.Item;
 import com.example.geoshoppingfinal.ItemList;
@@ -59,14 +58,14 @@ public class SendFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_send, container, false);
+        final View root = inflater.inflate(R.layout.fragment_send, container, false);
         listView = (ListView) root.findViewById(R.id.itemListView);
         listView.setEmptyView(root.findViewById(R.id.emptyElement));
         FloatingActionButton fab = getActivity().findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addItem();
+                addItem(root);
             }
         });
         list = dataBase.retrieveListItems(0, shopID);
@@ -157,7 +156,7 @@ public class SendFragment extends Fragment {
 
 
 
-    @Override
+/*    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         getActivity();
@@ -177,6 +176,24 @@ public class SendFragment extends Fragment {
                                 autoGeofenceHistory(location);
                             }
                         }
+                    }
+                }
+            }
+        }
+    }*/
+
+    public void checkLastLocation(int itemID){
+        if(list.size() == 1) {
+            int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
+            if (lastLocationID != 0) {
+                if (!dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
+                    autoGeofenceHistory(dataBase.getLocation(lastLocationID));
+                }
+            } else {
+                if (!dataBase.checkListIsGeofenced(shopID)) {
+                    Location location = dataBase.getLocation(dataBase.getItemLocationHistory(itemID));
+                    if(location.getLocationID() != -1){
+                        autoGeofenceHistory(location);
                     }
                 }
             }
@@ -231,10 +248,11 @@ public class SendFragment extends Fragment {
     }
 
     //Method that opens link shop activity from the card adapter
-    public void addItem(){
-        Intent intent = new Intent(getActivity(), AddItemActivity.class);
+    public void addItem(View root){
+        ((MainActivity) getActivity()).openAddItemFragment(root, shopID);
+/*        Intent intent = new Intent(getActivity(), AddItemActivity.class);
         intent.putExtra("shopListID", shopID);
-        startActivityForResult(intent, REQUEST_CODE_ITEM);
+        startActivityForResult(intent, REQUEST_CODE_ITEM);*/
     }
 
     @Override

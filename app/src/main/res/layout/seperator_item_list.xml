@@ -8,11 +8,11 @@ android:layout_height="match_parent">
         style="?android:listSeparatorTextViewStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#4CAF50"
+        android:background="#6ABC6D"
         android:text="New Text"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold" />
 <!--
-    android:background="#5CB65F"-->
+    android:background="#5CB65F"4CAF5C-->
 </RelativeLayout>

@@ -20,8 +20,10 @@ public class HelpActivity extends AppCompatActivity {
 
         // This is just an example. You can use whatever collection of images.
         int[] mResources = {
-                R.drawable.test_image,
-                R.drawable.test_image
+                R.drawable.welcome_screen,
+                R.drawable.shop_screen,
+                R.drawable.geofencing_screen,
+                R.drawable.end_screen
         };
 
         HelpPagerAdapter mCustomPagerAdapter = new HelpPagerAdapter(this, mResources);

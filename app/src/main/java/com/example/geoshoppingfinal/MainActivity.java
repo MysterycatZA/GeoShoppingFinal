@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -102,17 +103,17 @@ public class MainActivity extends AppCompatActivity
             }
         });
         final FloatingActionButton fab = this.findViewById(R.id.fab);
-        navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
+/*        navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
             @Override
             public void onDestinationChanged(@NonNull NavController controller,
                                              @NonNull NavDestination destination, @Nullable Bundle arguments) {
-                if(destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_send || destination.getId() == R.id.nav_slideshow) {
+*//*                if(destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_send || destination.getId() == R.id.nav_slideshow) {
                     fab.setVisibility(View.VISIBLE);
                 } else {
                     fab.setVisibility(View.GONE);
-                }
+                }*//*
             }
-        });
+        });*/
         dataBase = new DataBase(this);
         dataBase.setupItem();
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
@@ -138,6 +139,12 @@ public class MainActivity extends AppCompatActivity
         sharedpreferences = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
     }
 
+/*    @Override
+    public void onBackPressed(){
+        super.onBackPressed();
+    }*/
+
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -145,6 +152,8 @@ public class MainActivity extends AppCompatActivity
         if (sharedpreferences.getBoolean("firstrun", true)) {
             // Do first run stuff here then set 'firstrun' as false
             // using the following line to edit/commit prefs
+            Intent intent = new Intent(getApplicationContext(), HelpActivity.class);
+            startActivity(intent);
             sharedpreferences.edit().putBoolean("firstrun", false).commit();
         }
     }
@@ -176,6 +185,12 @@ public class MainActivity extends AppCompatActivity
         Navigation.findNavController(view).navigate(R.id.nav_send, bundle);
     }
 
+    public void openAddItemFragment(View view, int shopID){
+        Bundle bundle = new Bundle();
+        bundle.putInt("shopID", shopID);
+        Navigation.findNavController(view).navigate(R.id.nav_share, bundle);
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -204,11 +219,11 @@ public class MainActivity extends AppCompatActivity
         void onRefresh();
     }
 
-    //Method that opens link shop activity from the card adapter
+/*    //Method that opens link shop activity from the card adapter
     public void addItem(){
         Intent intent = new Intent(this, AddItemActivity.class);
         startActivityForResult(intent, REQUEST_CODE_ITEM);
-    }
+    }*/
 
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
