@@ -27,6 +27,7 @@ public class LocationListViewAdapter extends BaseAdapter {
     private static LayoutInflater inflater = null;         //Layout inflater
     public GeoFenceInterface geoFenceInterface;                                     //Link shop interface
     private int shopID;
+    private int chosenShopID;
 
     public interface GeoFenceInterface {                                     //Interface for sending the position and id of the shopping list back to the main activity
         void createGeofenceData(LatLng latLng, int id);
@@ -118,8 +119,8 @@ public class LocationListViewAdapter extends BaseAdapter {
                         AlertDialog dialog = builder.create();
                         dialog.show();
                     } else {
-                        if (shopID != 0) {
-                            if (!data.get(position).isGeofenced()) {
+                        if(!data.get(position).isGeofenced()) {
+                            if  (shopID != 0) {
                                 if (!dataBase.checkListIsGeofenced(shopID)) {
                                     dataBase.saveHistory(shopID, location.getLocationID());
                                     addGeofence(shopID, location, position);
@@ -127,10 +128,10 @@ public class LocationListViewAdapter extends BaseAdapter {
                                     showError("Only 1 shop allowed to be geofenced to a shopping list at a time");
                                 }
                             } else {
-                                showError("Location already linked to another Shopping list");
+                                loadOpenShopList(location, position);
                             }
                         } else {
-                            showError("No shopping list to link");
+                            showError("Location already linked to another Shopping list");
                         }
                     }
                 }
@@ -165,6 +166,72 @@ public class LocationListViewAdapter extends BaseAdapter {
             }
         });
         return view;
+    }
+
+    public void loadOpenShopList(Location location, int position){
+        DataBase dataBase = new DataBase(context);
+        ArrayList<ShoppingList> shoppingListArrayList = dataBase.retrieveShopList();
+        ArrayList<ShoppingList> filteredList = new ArrayList<>();
+        filteredList.clear();
+
+        for (ShoppingList shopList:shoppingListArrayList) {
+            if(!dataBase.checkListIsGeofenced(shopList.getShoppingListID())){
+                filteredList.add(shopList);
+            }
+        }
+
+        if(filteredList.size() > 0) {
+            displaySuggested(filteredList, location, position);
+        }
+        else{
+            showError("No shopping list to link");
+        }
+    }
+
+    public void displaySuggested(final ArrayList<ShoppingList> itemArrayList, final Location location, final int position){
+
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Shopping list to link");
+
+        // add a checkbox list
+        String[] items = new String[itemArrayList.size()];
+        for (int i = 0; i < items.length; i++){
+            items[i] = itemArrayList.get(i).getName();
+        }
+
+        builder.setSingleChoiceItems(items, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                selectedShopList(which);
+                // user checked an item
+            }
+        });
+
+        // add OK and Cancel buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                geofenceShopList(itemArrayList, location, position);
+                // user clicked OK
+
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public void selectedShopList(int which){
+        chosenShopID = which;
+    }
+
+    public void geofenceShopList(ArrayList<ShoppingList> shoppingListArrayList, Location location, int position){
+        DataBase dataBase = new DataBase(context);
+        dataBase.saveHistory(shoppingListArrayList.get(chosenShopID).getShoppingListID(), location.getLocationID());
+        addGeofence(shoppingListArrayList.get(chosenShopID).getShoppingListID(), location, position);
     }
 
 
