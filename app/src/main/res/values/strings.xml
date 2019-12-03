@@ -29,8 +29,8 @@
     <string name="ANDROID_API_KEY">AIzaSyAaOSozlNmzZcjQ_8rgnSiZ1CX92wuskus</string>
     <string name="MAPS_API_KEY">AIzaSyDaDQRoc087nDE5_vfvwOGyYGCNRhNH4s4</string>
     <string name="HISTORY_TABLE">History</string>
-    <string name="empty_list_home">Oops nothing here.\nTap the plus button at the bottom to start.</string>
-    <string name="empty_list_list">Empty shopping list.\nTap the plus button at the bottom to add an item.</string>
-    <string name="empty_list_item">No items.\nTap the plus button at the bottom to add an item.</string>
-    <string name="empty_list_location">No locations.\nTap the plus button at the bottom to add a shop location.</string>
+    <string name="empty_list_home">Oops nothing here.\nTap the plus button to start.</string>
+    <string name="empty_list_list">Empty shopping list.\nTap the plus button to add an item.</string>
+    <string name="empty_list_item">No items.\nTap the plus button to add an item.</string>
+    <string name="empty_list_location">No locations.\nTap the plus button to add a shop location.</string>
 </resources>
