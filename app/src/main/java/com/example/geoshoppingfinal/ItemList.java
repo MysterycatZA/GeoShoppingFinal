@@ -1,14 +1,16 @@
 package com.example.geoshoppingfinal;
 
-import com.example.geoshoppingfinal.Item;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Class to handle item list in a shopping list
 public class ItemList extends Item {
-
-    private int quantity;
-    private boolean bought;
-    private int itemListID;
-    private boolean clearBought;
-    private int shoppingListID;
+    //Declaration and Initialisation
+    private int quantity;               //Quantity
+    private boolean bought;             //Is item bought
+    private int itemListID;             //Item list id
+    private boolean clearBought;        //Is clear bough
+    private int shoppingListID;         //Shopping list id
 
     public ItemList(){
         this.setSeparator(false);
@@ -36,7 +38,7 @@ public class ItemList extends Item {
         this.setClearBought(false);
         this.setShoppingListID(shoppingListID);
     }
-
+    //GEtters and setters
     public int getQuantity() {
         return quantity;
     }

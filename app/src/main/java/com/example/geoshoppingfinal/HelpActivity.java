@@ -6,10 +6,13 @@ import androidx.viewpager.widget.ViewPager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Activity to display help  based off https://developer.android.com/training/animation/screen-slide
 public class HelpActivity extends AppCompatActivity {
-
-    ViewPager mViewPager;
+    //Declaration and Initialisation
+    ViewPager mViewPager;                   //View pager
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

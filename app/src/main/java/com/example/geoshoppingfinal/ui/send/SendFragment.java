@@ -30,18 +30,20 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Fragment for the shopping list item list
 public class SendFragment extends Fragment {
-
-    private ItemListViewAdapter adapter;
-    private ListView listView;
-    private ArrayList<ItemList> list;
-    private int shopID;
-    private String fragmentTitle;
-    private MainViewModel mainViewModel;
-    private DataBase dataBase;
-    private ArrayList<Item> itemToAddSuggestedList;
-    private static final int REQUEST_CODE_ITEM = 2;
+    //Declaration and Initialisation
+    private ItemListViewAdapter adapter;                //Adapter
+    private ListView listView;                          //List view
+    private ArrayList<ItemList> list;                   //Array of item list
+    private int shopID;                                 //Shopping list id
+    private String fragmentTitle;                       //Title
+    private MainViewModel mainViewModel;                //View model
+    private DataBase dataBase;                          //Database
+    private ArrayList<Item> itemToAddSuggestedList;     //Suggested items to add array
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,18 +77,9 @@ public class SendFragment extends Fragment {
         else {
             loadSuggested();
         }
-/*        SendViewModel model = ViewModelProviders.of(getActivity()).get(SendViewModel.class);
-
-        ((MainActivity)getActivity()).setFragmentRefreshListener(new MainActivity.FragmentRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadData(0, shopID);
-                // Refresh Your Fragment
-            }
-        });*/
         return root;
     }
-
+    //Loading suggested items
     public void loadSuggested(){
         ArrayList<Item> itemArrayList = dataBase.getSuggestedItems(shopID);
         if(itemArrayList.size() > 0) {
@@ -95,7 +88,7 @@ public class SendFragment extends Fragment {
             displaySuggested(itemArrayList);
         }
     }
-
+    //Displaying suggested items in a dialog based off https://stackoverflow.com/questions/15762905/how-can-i-display-a-list-view-in-an-android-alert-dialog
     public void displaySuggested(final ArrayList<Item> itemArrayList){
 
         // setup the alert builder
@@ -130,7 +123,7 @@ public class SendFragment extends Fragment {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
+    //Method to add item to suggested item array when item is selected
     public void suggestedItemChecked(int which, boolean isChecked, ArrayList<Item> itemArrayList){
         if(isChecked) {
             itemToAddSuggestedList.add(itemArrayList.get(which));
@@ -139,7 +132,7 @@ public class SendFragment extends Fragment {
             itemToAddSuggestedList.remove(which);
         }
     }
-
+    //Method to add suggested items to shopping list
     public void addSuggested(){
         for (Item item: itemToAddSuggestedList) {
             ItemList itemList = new ItemList(1, item.getItemID(), shopID);
@@ -152,52 +145,6 @@ public class SendFragment extends Fragment {
             }
         }
         loadData(0, shopID);
-    }
-
-
-
-/*    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        getActivity();
-        if(requestCode == REQUEST_CODE_ITEM){
-            loadData(0, shopID);
-            if(resultCode == Activity.RESULT_OK){
-                if(list.size() == 1) {
-                    int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
-                    if (lastLocationID != 0) {
-                        if (!dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
-                            autoGeofenceHistory(dataBase.getLocation(lastLocationID));
-                        }
-                    } else {
-                        if (!dataBase.checkListIsGeofenced(shopID)) {
-                            Location location = dataBase.getLocation(dataBase.getItemLocationHistory(data.getIntExtra("itemID", 0)));
-                            if(location.getLocationID() != -1){
-                                autoGeofenceHistory(location);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }*/
-
-    public void checkLastLocation(int itemID){
-        if(list.size() == 1) {
-            int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
-            if (lastLocationID != 0) {
-                if (!dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
-                    autoGeofenceHistory(dataBase.getLocation(lastLocationID));
-                }
-            } else {
-                if (!dataBase.checkListIsGeofenced(shopID)) {
-                    Location location = dataBase.getLocation(dataBase.getItemLocationHistory(itemID));
-                    if(location.getLocationID() != -1){
-                        autoGeofenceHistory(location);
-                    }
-                }
-            }
-        }
     }
 
     public void autoGeofenceHistory(final Location location){
@@ -231,7 +178,7 @@ public class SendFragment extends Fragment {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
+    //Method to display error message dialog
     public void showError(String message, Context context){
         AlertDialog.Builder builder = new AlertDialog.Builder(context); //Alerting user that the location is already linked
 
@@ -247,20 +194,17 @@ public class SendFragment extends Fragment {
         dialog.show();
     }
 
-    //Method that opens link shop activity from the card adapter
+    //Method that adds item
     public void addItem(View root){
         ((MainActivity) getActivity()).openAddItemFragment(root, shopID);
-/*        Intent intent = new Intent(getActivity(), AddItemActivity.class);
-        intent.putExtra("shopListID", shopID);
-        startActivityForResult(intent, REQUEST_CODE_ITEM);*/
     }
-
+    //Method to create options menu for asc/desc
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.sort, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
-
+    //Method for handling the ordering of items asc/desc
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
@@ -275,7 +219,7 @@ public class SendFragment extends Fragment {
                 return super.onOptionsItemSelected(item);
         }
     }
-
+    //Method to load array to adapter to be displayed
     private void loadData(int sort, int shopID) {
         list = dataBase.retrieveListItems(sort, shopID);
         adapter = new ItemListViewAdapter(getActivity(), list);             //List view displaying items

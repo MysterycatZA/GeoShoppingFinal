@@ -18,22 +18,24 @@ import androidx.recyclerview.widget.RecyclerView;
 /**
  * Created by Luke Shaw 17072613
  */
+//Code is based off tutorial from https://developer.android.com/guide/topics/ui/layout/cardview
 //Card adapter to display shopping list item on the card view from the shopping list array list
 public class ShoppingListViewAdapter extends RecyclerView
         .Adapter<ShoppingListViewAdapter
         .DataObjectHolder>{
-    private ArrayList<ShoppingList> mDataset;                       //Data set
+    //Declaration and Initialisation
+    private ArrayList<ShoppingList> mDataset;                      //Data set
     private static MyClickListener myClickListener;                //Card listener
-    public LinkShops linkShops;                                     //Link shop interface
-    public HandleGeofence handleGeofence;
-    private Context context;
-    private DataBase dataBase;
+    public LinkShops linkShops;                                    //Link shop interface
+    public HandleGeofence handleGeofence;                          //Handle Geofence Interface
+    private Context context;                                       //App Context
+    private DataBase dataBase;                                     //Database
 
-    public interface HandleGeofence{                                     //Interface for sending the position and id of the shopping list back to the main activity
+    public interface HandleGeofence{                                //Interface for sending the geofence back to the main activity
         void removeGeofenceData(int id);
     }
 
-    public interface LinkShops{                                     //Interface for sending the position and id of the shopping list back to the main activity
+    public interface LinkShops{                                     //Interface for sending the name and id of the shopping list back to the main activity
         void sendLinkShops(String name, int id);
     }
     //Data object holder for the card view
@@ -48,13 +50,13 @@ public class ShoppingListViewAdapter extends RecyclerView
         CardView cardView;
         public DataObjectHolder(View itemView) {
             super(itemView);
-            label = (TextView) itemView.findViewById(R.id.name);
-            total = (TextView) itemView.findViewById(R.id.total);
-            bought = (TextView) itemView.findViewById(R.id.bought);
-            deleteImage = (ImageView) itemView.findViewById(R.id.delete_button);
-            linkShops = (ImageView) itemView.findViewById(R.id.link_button);
-            cardView = itemView.findViewById(R.id.card_view);
-            itemView.setOnClickListener(this);
+            label = (TextView) itemView.findViewById(R.id.name);                    //Name label
+            total = (TextView) itemView.findViewById(R.id.total);                   //Total label
+            bought = (TextView) itemView.findViewById(R.id.bought);                 //Bought label
+            deleteImage = (ImageView) itemView.findViewById(R.id.delete_button);    //Delete button/image
+            linkShops = (ImageView) itemView.findViewById(R.id.link_button);        //Link button/image
+            cardView = itemView.findViewById(R.id.card_view);                       //View to hold card items
+            itemView.setOnClickListener(this);                                      //On click listener for card
         }
 
         @Override
@@ -94,10 +96,10 @@ public class ShoppingListViewAdapter extends RecyclerView
 
         deleteImage.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v) {                                               //Delete button on click
                 AlertDialog.Builder builder = new AlertDialog.Builder(parent.getContext());
                 builder.setTitle("Do you want to delete this shopping list?");
-// Add the buttons
+                // Add the buttons
                 builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
@@ -128,7 +130,7 @@ public class ShoppingListViewAdapter extends RecyclerView
         holder.deleteImage.setTag(mDataset.get(position).getShoppingListID());  //Setting id in tag
         holder.linkShops.setTag(position);                                      //Setting current posistion in card view in tag
         holder.label.setTag(mDataset.get(position).getName());
-        if(mDataset.get(position).checkIfGeofenced(context)){
+        if(mDataset.get(position).checkIfGeofenced(context)){                   //Changing card color when list is geofenced
             holder.label.setTextColor(Color.parseColor("#FFFFFF"));
             holder.bought.setTextColor(Color.parseColor("#FFFFFF"));
             holder.total.setTextColor(Color.parseColor("#FFFFFF"));
@@ -144,10 +146,10 @@ public class ShoppingListViewAdapter extends RecyclerView
     }
     //Method to remove a card item
     public void deleteItem(int index, int shopID) {
-        if(index < mDataset.size()) {
-            if(dataBase.deleteShopList(mDataset.get(index))){
-                dataBase.deleteLinkedShopToList(shopID);
-                int locationID = dataBase.checkForlinkShoppingList(shopID);
+        if(index < mDataset.size()) {                                           //Check if item is within array
+            if(dataBase.deleteShopList(mDataset.get(index))){                   //Deleting shopping list
+                dataBase.deleteLinkedShopToList(shopID);                        //Deleting linked items to shopping list
+                int locationID = dataBase.checkForlinkShoppingList(shopID);     //Checking for linked locations to shop list
                 if(locationID != 0){
                     Location location = dataBase.getLocation(locationID);
                     location.setGeofenced(false);
@@ -155,7 +157,7 @@ public class ShoppingListViewAdapter extends RecyclerView
                     handleGeofence  = (HandleGeofence) context;
                     handleGeofence.removeGeofenceData(locationID);
                 }
-                mDataset.remove(index);
+                mDataset.remove(index);                                         //Removing from adapter dataset
                 notifyItemRemoved(index);
                 notifyItemRangeChanged(index, mDataset.size());
             }

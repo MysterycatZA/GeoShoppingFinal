@@ -34,51 +34,42 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Main sctivity that holds all the Geofence code as well as initialisation of the app
 public class MainActivity extends AppCompatActivity
     implements ShoppingListViewAdapter.LinkShops,
         ShoppingListViewAdapter.HandleGeofence,
         LocationListViewAdapter.GeoFenceInterface {
-    private AppBarConfiguration mAppBarConfiguration;
-    private NavController navController;
-    private DrawerLayout drawer;
-    private GeofencingClient geofencingClient;
-    private ArrayList<Geofence> geofences;
-    private MainViewModel mainViewModel;
-    private DataBase dataBase;
-    private SharedPreferences sharedpreferences;
-    //Constants
-    private static final float GEOFENCE_RADIUS = 300.0f; // in meters
-    private static final String CHANNEL_ID = "Geofence";
-    private static final int REQUEST_CODE_PLACE = 1;
-    private static final int REQUEST_CODE_ITEM = 2;
+    //Declaration and initialisation
+    private AppBarConfiguration mAppBarConfiguration;       //App bar configuration
+    private NavController navController;                    //Nav controller
+    private DrawerLayout drawer;                            //Drawer
+    private GeofencingClient geofencingClient;              //Geofencing client
+    private ArrayList<Geofence> geofences;                  //Array of geofences
+    private MainViewModel mainViewModel;                    //Main viewmodel
+    private DataBase dataBase;                              //Database
+    private SharedPreferences sharedpreferences;            //Sharedpreferences
+    private static final float GEOFENCE_RADIUS = 300.0f;    //Geofence radius in meters
+    private static final String CHANNEL_ID = "Geofence";    //Broadcast channel for Geofences
 
-    public FragmentRefreshListener getFragmentRefreshListener() {
-        return fragmentRefreshListener;
-    }
-
-    public void setFragmentRefreshListener(FragmentRefreshListener fragmentRefreshListener) {
-        this.fragmentRefreshListener = fragmentRefreshListener;
-    }
-
-    private FragmentRefreshListener fragmentRefreshListener;
-
+    //On create for initialising Activity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme_NoActionBar);
+        setTheme(R.style.AppTheme_NoActionBar);                                 //Setting app theme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);                           //Setting up toolbar
         setSupportActionBar(toolbar);
-        drawer = findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);                              //Setting up drawer
         NavigationView navigationView = findViewById(R.id.nav_view);
         geofences = new ArrayList<>();
         createNotificationChannel();
-        geofencingClient = LocationServices.getGeofencingClient(this);
+        geofencingClient = LocationServices.getGeofencingClient(this);  //Setting up GEofence client based off https://developer.android.com/training/location/geofencing
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -86,12 +77,12 @@ public class MainActivity extends AppCompatActivity
                 R.id.nav_share, R.id.nav_send)
                 .setDrawerLayout(drawer)
                 .build();
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);                 //Setting up nav controller
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {                           //Start help activity when help button in drawer is tapped
                 if(menuItem.getItemId() == R.id.nav_tools){
                     Intent intent = new Intent(getApplicationContext(), HelpActivity.class);
                     startActivity(intent);
@@ -103,19 +94,8 @@ public class MainActivity extends AppCompatActivity
             }
         });
         final FloatingActionButton fab = this.findViewById(R.id.fab);
-/*        navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
-            @Override
-            public void onDestinationChanged(@NonNull NavController controller,
-                                             @NonNull NavDestination destination, @Nullable Bundle arguments) {
-*//*                if(destination.getId() == R.id.nav_home || destination.getId() == R.id.nav_send || destination.getId() == R.id.nav_slideshow) {
-                    fab.setVisibility(View.VISIBLE);
-                } else {
-                    fab.setVisibility(View.GONE);
-                }*//*
-            }
-        });*/
         dataBase = new DataBase(this);
-        dataBase.setupItem();
+        dataBase.setupItem();                                                               //Setup item list for database
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
         mainViewModel.getText().observe(this, new Observer<String>() {
             @Override
@@ -124,7 +104,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
         String notification = getIntent().getStringExtra("notification");
-        if(notification != null){
+        if(notification != null){                                                           //Code to check for if a notification was tapped when app is booting
             int shopID = Integer.parseInt(getIntent().getStringExtra("shopID"));
             Location location = dataBase.getLocation(shopID);
             int shopListID = location.getShoppingListID();
@@ -133,20 +113,14 @@ public class MainActivity extends AppCompatActivity
                 removeGeofenceData(shopID);
                 Bundle bundle = new Bundle();
                 bundle.putInt("shopID", shopListID);
-                navController.navigate(R.id.nav_send, bundle);
+                navController.navigate(R.id.nav_send, bundle);                              //Opening shopping list linked to notification
             }
         }
         sharedpreferences = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
     }
 
-/*    @Override
-    public void onBackPressed(){
-        super.onBackPressed();
-    }*/
-
-
     @Override
-    protected void onResume() {
+    protected void onResume() {         //Code to check if application first boot based off https://stackoverflow.com/questions/7217578/check-if-application-is-on-its-first-run
         super.onResume();
 
         if (sharedpreferences.getBoolean("firstrun", true)) {
@@ -165,33 +139,34 @@ public class MainActivity extends AppCompatActivity
         bundle.putInt("shopListID", id);
         navController.navigate(R.id.nav_slideshow, bundle);
     }
-
+    //Method that creates geofence based off passed latlng and id
     public void createGeofenceData(LatLng latLng, int id){
         createGeofence(latLng, id + "");
         addGeofence(id);
     }
+    //Method to remove geofence
     public void removeGeofenceData(int id){
-        List<String> geofenceList = Arrays.asList(id + "");
-        removeGeofenceID(geofenceList);
-        removeGeofencePending(id);
+        List<String> geofenceList = Arrays.asList(id + "");     //Concatenate ids to string of ids for removal
+        removeGeofenceID(geofenceList);                         //Remove geofences based off id
+        removeGeofencePending(id);                              //REmove any pending intents based off that id
         Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
         PendingIntent.getBroadcast(this, id, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT).cancel();
     }
-
+    //Method to open shopping list fragment
     public void openShopListFragment(View view, int shopID){
         Bundle bundle = new Bundle();
         bundle.putInt("shopID", shopID);
         Navigation.findNavController(view).navigate(R.id.nav_send, bundle);
     }
-
+    //MEthod to open add item fragment
     public void openAddItemFragment(View view, int shopID){
         Bundle bundle = new Bundle();
         bundle.putInt("shopID", shopID);
         Navigation.findNavController(view).navigate(R.id.nav_share, bundle);
     }
 
-    @Override
+    @Override       //MEthod to check for if notification was clicked when app is running in background/FOreground
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
@@ -214,17 +189,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-
-    public interface FragmentRefreshListener{
-        void onRefresh();
-    }
-
-/*    //Method that opens link shop activity from the card adapter
-    public void addItem(){
-        Intent intent = new Intent(this, AddItemActivity.class);
-        startActivityForResult(intent, REQUEST_CODE_ITEM);
-    }*/
-
+    //Method for creating notification channel, based off https://developer.android.com/training/notify-user/build-notification
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -240,12 +205,13 @@ public class MainActivity extends AppCompatActivity
             notificationManager.createNotificationChannel(channel);
         }
     }
-
+    //Method for checking for result from activity, used for PING.
+    //Call needed here so that it can be used by fragments
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
     }
-
+    //Method for creating geofences based off https://developer.android.com/training/location/geofencing
     public void createGeofence(LatLng latLng, String id){
         geofences.add(new Geofence.Builder()
                 // Set the request ID of the geofence. This is a string to identify this
@@ -257,14 +223,14 @@ public class MainActivity extends AppCompatActivity
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                 .build());
     }
-
+    //MEthod for creating geofence request, based off https://developer.android.com/training/location/geofencing
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(geofences);
         return builder.build();
     }
-
+    //Remove geofence pending intents by id based off https://developer.android.com/training/location/geofencing
     public void removeGeofencePending(int id){
         geofencingClient.removeGeofences(getGeofencePendingIntent(id))
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
@@ -283,7 +249,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
     }
-
+    //Remove geofences based off id based off https://developer.android.com/training/location/geofencing
     public void removeGeofenceID(List<String> geofences){
         geofencingClient.removeGeofences(geofences)
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
@@ -302,7 +268,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
     }
-
+    //Adding geofence
     public void addGeofence(int geofenceID){
         geofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent(geofenceID))
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
@@ -321,9 +287,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
     }
-
-
-
+    //Method to get geofence pending intent based off https://developer.android.com/training/location/geofencing
     private PendingIntent getGeofencePendingIntent(int requestCode) {
         Context context = this;
         Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
@@ -331,7 +295,7 @@ public class MainActivity extends AppCompatActivity
         // calling addGeofences() and removeGeofences().
         return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
-
+    //Method to handle backbutton for fragments
     @Override
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);

@@ -19,23 +19,19 @@ import androidx.appcompat.app.AlertDialog;
  * Created by Luke Shaw 17072613
  */
 //Method for handling list view for displaying items
+//Seperator code is based off https://codetheory.in/android-dividing-listview-sections-group-headers/
 public class ItemViewAdapter extends BaseAdapter {
-
-    private Context context;
-    private ArrayList<Item> data;
+    //Declaration and Initialisation
+    private Context context;                                    //Context
+    private ArrayList<Item> data;                               //Item array
     public AddItem addItem;                                     //Link shop interface
-    private String searchText;
-    private DataBase dataBase;
+    private String searchText;                                  //Search text
+    private DataBase dataBase;                                  //Database
 
-    // View Type for Separators
-    private static final int ITEM_VIEW_TYPE_SEPARATOR = 0;
-    // View Type for Regular rows
-    private static final int ITEM_VIEW_TYPE_REGULAR = 1;
-    // View Type for Regular rows
-    private static final int ITEM_VIEW_TYPE_ADD = 2;
-    // Types of Views that need to be handled
-    // -- Separators and Regular rows --
-    private static final int ITEM_VIEW_TYPE_COUNT = 3;
+    private static final int ITEM_VIEW_TYPE_SEPARATOR = 0;      //View Type for Separators
+    private static final int ITEM_VIEW_TYPE_REGULAR = 1;        //View Type for Regular rows
+    private static final int ITEM_VIEW_TYPE_ADD = 2;            //View Type for add rows
+    private static final int ITEM_VIEW_TYPE_COUNT = 3;          //View type count
 
     public interface AddItem{                                     //Interface for sending the position and id of the shopping list back to the main activity
         void sendItem(int quantity, int id, String name);
@@ -75,27 +71,12 @@ public class ItemViewAdapter extends BaseAdapter {
         data.remove(position);
         notifyDataSetChanged();
     }
-
- /*   @Override
-    public int getCount() {
-        return data.size();
-    }
-
-    @Override
-    public Object getItem(int position) {
-        return null;
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return 0;
-    }*/
-
+    //Get view type count
     @Override
     public int getViewTypeCount() {
         return ITEM_VIEW_TYPE_COUNT;
     }
-
+    //Get view type based off id
     @Override
     public int getItemViewType(int position) {
         boolean isSection = data.get(position).isSeparator();
@@ -111,12 +92,12 @@ public class ItemViewAdapter extends BaseAdapter {
             return ITEM_VIEW_TYPE_REGULAR;
         }
     }
-
+    //Stops separator from being selsected
     @Override
     public boolean isEnabled(int position) {
         return getItemViewType(position) != ITEM_VIEW_TYPE_SEPARATOR;
     }
-
+    //Method to display items in the view
     @Override
     public View getView(final int position, View convertView, final ViewGroup parent) {
 
@@ -130,10 +111,11 @@ public class ItemViewAdapter extends BaseAdapter {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             if (itemViewType == ITEM_VIEW_TYPE_SEPARATOR) {
-                // If its a section ?
+                // If its a separator
                 view = inflater.inflate(R.layout.seperator_item_list, null);
             }
             else if(itemViewType == ITEM_VIEW_TYPE_ADD){
+                //if its a add item
                 view = inflater.inflate(R.layout.add_item_list, null);
             }
             else {
@@ -145,19 +127,17 @@ public class ItemViewAdapter extends BaseAdapter {
             view = convertView;
         }
 
-
+        // If separator
         if (itemViewType == ITEM_VIEW_TYPE_SEPARATOR) {
-            // If separator
-
             TextView separatorView = (TextView) view.findViewById(R.id.separator);
             separatorView.setText(item.getName());
         }
-        else if(itemViewType == ITEM_VIEW_TYPE_ADD){
+        else if(itemViewType == ITEM_VIEW_TYPE_ADD){                                //IF an add item
             TextView addView = (TextView) view.findViewById(R.id.addItem);
             addView.setText(item.getName());
             addView.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {                       //Delete image click listener that displays a dialog to delete an item
+                public void onClick(View v) {                                       //IF selected open add item dialog
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     final View myView = inflat.inflate(R.layout.dialog_add_item, null);
                     builder.setView(myView);
@@ -196,8 +176,6 @@ public class ItemViewAdapter extends BaseAdapter {
         }
         else {
             // If regular
-
-            // Set contact name and number
             TextView linkedShopList = view.findViewById(R.id.linkedList);
             ImageView deleteImage = (ImageView) view.findViewById(R.id.delete_button);
             linkedShopList.setText(dataBase.getLinkedItemListNames(item.getItemID()));
@@ -210,18 +188,15 @@ public class ItemViewAdapter extends BaseAdapter {
 
             itemNameView.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {                       //Delete image click listener that displays a dialog to delete an item
+                public void onClick(View v) {                   //If item is selected open the add item dialog
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     final View myView = inflat.inflate(R.layout.dialog_add_item, null);
                     builder.setView(myView);
                     final TextView itemName = (TextView) myView.findViewById(R.id.itemName);
                     EditText itemNameEdit = myView.findViewById(R.id.itemNameEdit);
                     final EditText quantity = (EditText) myView.findViewById(R.id.itemQty);
-
                     itemNameEdit.setVisibility(View.GONE);
-
                     itemName.setText(item.getName());
-
                     builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {           //Yes
                             if(!quantity.getText().toString().isEmpty()){
@@ -253,7 +228,6 @@ public class ItemViewAdapter extends BaseAdapter {
                             if (dataBase.deleteItem(item)) {
                                 dataBase.deleteLinkedItemToList(item.getItemID());
                                 dataBase.deleteHistoryItemID(item.getItemID());
-                                //addItem = (AddItem)  parent.getContext();
                                 delete(position);
                                 addItem.deleteItem();
                                 dialog.dismiss();
@@ -274,7 +248,7 @@ public class ItemViewAdapter extends BaseAdapter {
 
         return view;
     }
-
+    //Method to format text to auto capitalise first letter
     public String formatText(String name){
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }

@@ -19,17 +19,20 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;
 
 import androidx.appcompat.app.AlertDialog;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Adapter for location list
 public class LocationListViewAdapter extends BaseAdapter {
     //Declaration and Initialisation
-    private ArrayList<Location> data;                       //Array list of items
-    private Context context;                            //Context of passed activity
-    private static LayoutInflater inflater = null;         //Layout inflater
-    public GeoFenceInterface geoFenceInterface;                                     //Link shop interface
-    private int shopID;
-    private int chosenShopID;
+    private ArrayList<Location> data;                       //Array list of locations
+    private Context context;                                //Context of passed activity
+    private static LayoutInflater inflater = null;          //Layout inflater
+    public GeoFenceInterface geoFenceInterface;             //Geofence interface
+    private int shopID;                                     //Shop id
+    private int chosenShopID;                               //Chosen shop id
 
-    public interface GeoFenceInterface {                                     //Interface for sending the position and id of the shopping list back to the main activity
+    public interface GeoFenceInterface {                        //Interface for sending data to delete or add geofences back to the main activity
         void createGeofenceData(LatLng latLng, int id);
         void removeGeofenceData(int id);
     }
@@ -167,7 +170,7 @@ public class LocationListViewAdapter extends BaseAdapter {
         });
         return view;
     }
-
+    //Method to load unlinked/open shopping lists to be able to link them
     public void loadOpenShopList(Location location, int position){
         DataBase dataBase = new DataBase(context);
         ArrayList<ShoppingList> shoppingListArrayList = dataBase.retrieveShopList();
@@ -187,7 +190,7 @@ public class LocationListViewAdapter extends BaseAdapter {
             showError("No shopping list to link");
         }
     }
-
+    //Method to display suggested items based off https://stackoverflow.com/questions/15762905/how-can-i-display-a-list-view-in-an-android-alert-dialog
     public void displaySuggested(final ArrayList<ShoppingList> itemArrayList, final Location location, final int position){
 
         // setup the alert builder
@@ -234,8 +237,7 @@ public class LocationListViewAdapter extends BaseAdapter {
         addGeofence(shoppingListArrayList.get(chosenShopID).getShoppingListID(), location, position);
     }
 
-
-
+    //Method to add geofence
     public void addGeofence(int shopID, Location location, int position){
         DataBase dataBase = new DataBase(context);
         location.setGeofenced(true);
@@ -251,7 +253,7 @@ public class LocationListViewAdapter extends BaseAdapter {
             notifyDataSetChanged();
         }
     }
-
+    //Method to remove location
     public boolean removeLocation(Location location){
         DataBase dataBase = new DataBase(context);
         if(dataBase.deleteLocation(location)){
@@ -263,11 +265,10 @@ public class LocationListViewAdapter extends BaseAdapter {
 
         return false;
     }
-
+    //Method to remove geofence
     public void removeGeofence(Location location, int position){
         DataBase dataBase = new DataBase(context);
         location.setGeofenced(false);
-        //location.setShoppingListID(-1);
         if (dataBase.updateLocation(location)) {
             data.get(position).setGeofenced(false);
             geoFenceInterface  = (GeoFenceInterface) context;
@@ -275,9 +276,9 @@ public class LocationListViewAdapter extends BaseAdapter {
             notifyDataSetChanged();
         }
     }
-
+    //Method to display error message dialog
     public void showError(String message){
-        AlertDialog.Builder builder = new AlertDialog.Builder(context); //Alerting user that the location is already linked
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
         builder.setMessage(message)
                 .setTitle("Error");
@@ -290,15 +291,15 @@ public class LocationListViewAdapter extends BaseAdapter {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
+    //Method to see if location services are enabled based off https://stackoverflow.com/questions/10311834/how-to-check-if-location-services-are-enabled
     public static Boolean isLocationEnabled(Context context)
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-// This is new method provided in API 28
+        // This is new method provided in API 28
             LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             return lm.isLocationEnabled();
         } else {
-// This is Deprecated in API 28
+            // This is Deprecated in API 28
             int mode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE,
                     Settings.Secure.LOCATION_MODE_OFF);
             return  (mode != Settings.Secure.LOCATION_MODE_OFF);

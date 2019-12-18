@@ -1,21 +1,24 @@
 package com.example.geoshoppingfinal;
 
 import android.content.Context;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Class to hold shopping list information
 public class ShoppingList {
-
-    private String name;
-    private int shoppingListID;
-    private int lastLocationID;
-
+    //Declaration and initialisation
+    private String name;                //Name of shopping list
+    private int shoppingListID;         //Shopping list id
+    private int lastLocationID;         //Last linked location id
+    //Empty constructor
     public ShoppingList(){
     }
-
+    //Main constructor
     public ShoppingList(String name){
         this.name = name;
         this.setShoppingListID(-1);
     }
-
+    //Getters and setters
     public String getName() {
         return name;
     }
@@ -39,7 +42,7 @@ public class ShoppingList {
     public void setLastLocationID(int lastLocationID) {
         this.lastLocationID = lastLocationID;
     }
-
+    //Method to check if shopping list is geofenced
     public boolean checkIfGeofenced(Context context){
         return new DataBase(context).checkListIsGeofenced(getShoppingListID());
     }

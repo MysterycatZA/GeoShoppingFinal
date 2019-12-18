@@ -38,22 +38,24 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Fragment for locations
 public class SlideshowFragment extends Fragment {
+    //Declaration and Initialisation
+    private LocationListViewAdapter adapter;                //Adapter
+    private ListView listView;                              //Listview
+    private ArrayList<Location> list;                       //Location array
+    private ArrayList<Location> searchList;                 //Search location array
+    private int shopID;                                     //Shop id
+    private String shopName;                                //Shop name
+    private MainViewModel mainViewModel;                    //Viewmodel
+    private ProgressDialog progressDialog;                  //Progress dialog
+    private DataBase dataBase;                              //Database
+    private static final int REQUEST_CODE_PLACE = 1;        //Request code for PING
 
-    private LocationListViewAdapter adapter;
-    private ListView listView;
-    private ArrayList<Location> list;
-    private ArrayList<Location> searchList;
-    private SlideshowViewModel slideshowViewModel;
-    private int shopID;
-    private String shopName;
-    private MainViewModel mainViewModel;
-    private ProgressDialog progressDialog;
-    private DataBase dataBase;
-    private static final int REQUEST_CODE_PLACE = 1;
-
-    @Override
+    @Override   //Method for creating fragment/ Code initialises progress dialog based off http://www.41post.com/4588/programming/android-coding-a-loading-screen-part-1
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         progressDialog = new ProgressDialog(getContext());
@@ -80,18 +82,9 @@ public class SlideshowFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-/*        slideshowViewModel =
-                ViewModelProviders.of(this).get(SlideshowViewModel.class);*/
         View root = inflater.inflate(R.layout.fragment_slideshow, container, false);
-/*        final TextView textView = root.findViewById(R.id.text_slideshow);
-        slideshowViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });*/
         dataBase = new DataBase(getContext());
-        FloatingActionButton fab = getActivity().findViewById(R.id.fab);
+        FloatingActionButton fab = getActivity().findViewById(R.id.fab);                    //Fab
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -109,7 +102,7 @@ public class SlideshowFragment extends Fragment {
         loadData(false);
         return root;
     }
-
+    //Code to check if location services are enabled based off https://stackoverflow.com/questions/10311834/how-to-check-if-location-services-are-enabled
     public static Boolean isLocationEnabled(Context context)
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -124,7 +117,7 @@ public class SlideshowFragment extends Fragment {
 
         }
     }
-
+    //Method for PING place picker. Code based off tutorial from PING github https://github.com/rtchagas/pingplacepicker
     private void showPlacePicker() {
         PingPlacePicker.IntentBuilder builder = new PingPlacePicker.IntentBuilder();
         builder.setAndroidApiKey(getString(R.string.ANDROID_API_KEY))
@@ -142,7 +135,7 @@ public class SlideshowFragment extends Fragment {
             Toast.makeText(getActivity(), "Google Play services is not available...", Toast.LENGTH_SHORT).show();
         }
     }
-
+    //Method for handling the search view based off https://developer.android.com/training/search/setup
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.main, menu);
@@ -159,8 +152,7 @@ public class SlideshowFragment extends Fragment {
         searchView.setIconifiedByDefault(false);
         searchView.setFocusable(true);
         searchView.setIconified(false);
-        //searchView.clearFocus();
-        searchView.requestFocus();//.requestFocusFromTouch();
+        searchView.requestFocus();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -171,8 +163,8 @@ public class SlideshowFragment extends Fragment {
             public boolean onQueryTextChange(String newText) {
                 if(newText != null && !newText.isEmpty()){                                  //If the search text is not null or empty
                     searchList = new ArrayList<Location>();                                    //Search array list
-                    for(int i = 0; i < list.size(); i++){               //Looping through every anime object in the array list
-                        if(list.get(i).getName().toLowerCase().contains(newText)){    //If the anime name contains the word of search text, add it to the search array list
+                    for(int i = 0; i < list.size(); i++){               //Looping through every location object in the array list
+                        if(list.get(i).getName().toLowerCase().contains(newText)){    //If the location name contains the word of search text, add it to the search array list
                             searchList.add(list.get(i));
                         }
                     }
@@ -193,7 +185,7 @@ public class SlideshowFragment extends Fragment {
             progressDialog.hide();
         }
     }
-
+    //Method to get results back from PING place picker
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -202,7 +194,6 @@ public class SlideshowFragment extends Fragment {
             if (place != null) {
                 Location location = new Location(place.getName(), place.getLatLng().latitude, place.getLatLng().longitude);
                 if(!dataBase.checkLocationExist(location)) {
-                    //location.setShoppingListID(shopID);
                     int id = dataBase.saveLocation(location);
                     if (id != 0) {
                         if(shopID > 0) {
@@ -220,11 +211,10 @@ public class SlideshowFragment extends Fragment {
             }
         }
     }
-
+    //Method to geofence a location
     public void geofenceLocation(final LatLng latLng, final int locationID){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Do you want to geofence this location?");
-// Add the buttons
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 Location location = dataBase.getLocation(locationID);
@@ -254,7 +244,7 @@ public class SlideshowFragment extends Fragment {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
+    //Method that displays error message dialog
     public void showError(String message, Context context){
         AlertDialog.Builder builder = new AlertDialog.Builder(context); //Alerting user that the location is already linked
 
@@ -269,19 +259,7 @@ public class SlideshowFragment extends Fragment {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
-/*    public boolean checkLinked(ArrayList<Location> locations){
-        boolean found = false;
-        int index = 0;
-        while (!found && index < locations.size()){
-            if(locations.get(index).getShoppingListID() == shopID && locations.get(index).isGeofenced()){
-                found = true;
-            }
-            index++;
-        }
-        return found;
-    }*/
-
+    //Method to load data for adapter to display locations
     private void loadData(boolean search) {
 
         if(search){

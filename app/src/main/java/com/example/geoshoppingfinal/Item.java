@@ -1,10 +1,13 @@
 package com.example.geoshoppingfinal;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
 public class Item {
-    private String name;
-    private int itemID;
-    private boolean separator;
-    private boolean addItem;
+    //Declaration and initialisation
+    private String name;                //Name of item
+    private int itemID;                 //Item id
+    private boolean separator;          //Separator
+    private boolean addItem;            //ADd item
 
     public Item(){
         this.setItemID(-1);
@@ -24,7 +27,7 @@ public class Item {
         this.setSeparator(separator);
         this.setAddItem(false);
     }
-
+    //Getters and setters
     public String getName() {
         return name;
     }

@@ -21,16 +21,21 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import static androidx.constraintlayout.widget.StateSet.TAG;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Code is based off tutorial from https://developer.android.com/training/location/geofencing
+//This class manages the entering of geofences and creating notifications
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
+    //Declaration and Initialisation
+    private DataBase dataBase;                              //Database calls
+    private static final String CHANNEL_ID = "Geofence";    //Channel for broadcast receiver
 
-    private DataBase dataBase;
-    private static final String CHANNEL_ID = "Geofence";
-
+    //Method for receiving Geofence transitions
     public void onReceive(Context context, Intent intent) {
-        dataBase = new DataBase(context);
-        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
-        if (geofencingEvent.hasError()) {
+        dataBase = new DataBase(context);                                       //Initialising database
+        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);   //Receiving Geofence intent
+        if (geofencingEvent.hasError()) {                                       //Display error
             String errorMessage = getErrorString(geofencingEvent.getErrorCode());
             Log.e(TAG, errorMessage);
             return;
@@ -67,25 +72,23 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             Log.e(TAG, context.getString(R.string.geofence_transition_invalid_type));
         }
     }
-
+    //Method for sending notification to Android system to display
     private void sendNotification(Context context, String geofenceID, String shopName){
         Log.i(TAG, "sendNotification: GID = " + geofenceID);
         Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra("shopID", geofenceID);                      //Adding shoplist id
-        intent.putExtra("notification", "external");                      //Adding shoplist id
+        intent.putExtra("shopID", geofenceID);
+        intent.putExtra("notification", "external");
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(intent);
         PendingIntent pendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(geofenceID), PendingIntent.FLAG_UPDATE_CURRENT);
-        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        //PendingIntent pendingIntent = PendingIntent.getActivity(context, Integer.parseInt(geofenceID), intent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
         // notificationId is a unique int for each notification that you must define
         notificationManager.notify(Integer.parseInt(geofenceID), createNotification(shopName, pendingIntent, context));
 
     }
-
+    //Method for creating notification
     private Notification createNotification(String message, PendingIntent notificationPendingIntent, Context context){
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.baseline_beenhere_black_18dp)
@@ -99,13 +102,12 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         return builder.build();
     }
 
-    //Method that recieves the transition type and triggering geofences
+    //Method that receives the transition type and triggering geofences
     private String getGeofenceTransitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences) {
         //Declaration and Initialisation
         ArrayList<String> triggeringGeofencesList = new ArrayList<>();                  //List of triggering geofences
         for ( Geofence geofence : triggeringGeofences ) {                               // get the ID of each geofence triggered
             triggeringGeofencesList.add( geofence.getRequestId() );
-            //geofenceID = geofence.getRequestId();
         }
 
         String status = null;                                                       //Status of geofence ie entering

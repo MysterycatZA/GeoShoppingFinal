@@ -5,7 +5,9 @@ import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
 public class DataBaseHelper extends SQLiteOpenHelper {
     //This is a helper class for basic creation of the Sqllite database
     //Code is based off this https://camposha.info/android-swipe-tabs-sqlite-fragments-with-listview/

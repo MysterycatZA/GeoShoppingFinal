@@ -32,19 +32,21 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Fragment for item list
 public class ShareFragment extends Fragment
         implements ItemViewAdapter.AddItem{
-
-    //private ShareViewModel shareViewModel;
-    private ArrayList<Item> list;
-    private ArrayList<Item> searchList;
-    private int shopID;
-    private DataBase dataBase;
-    private MainViewModel mainViewModel;
-    private String fragmentTitle;
-    private ListView listView;
-    private SearchView searchView;
+    //Declaration and Initialisation
+    private ArrayList<Item> list;                   //Item array
+    private ArrayList<Item> searchList;             //Search item array
+    private int shopID;                             //Shop id
+    private DataBase dataBase;                      //Database
+    private MainViewModel mainViewModel;            //View model
+    private String fragmentTitle;                   //Title
+    private ListView listView;                      //List view
+    private SearchView searchView;                  //Search view
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,16 +62,7 @@ public class ShareFragment extends Fragment
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-/*        shareViewModel =
-                ViewModelProviders.of(this).get(ShareViewModel.class);*/
         View root = inflater.inflate(R.layout.fragment_share, container, false);
-/*        final TextView textView = root.findViewById(R.id.text_share);
-        shareViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });*/
         listView = (ListView) root.findViewById(R.id.itemView);
         listView.setEmptyView(root.findViewById(R.id.emptyElement));
         sortView(false, "");
@@ -82,7 +75,8 @@ public class ShareFragment extends Fragment
         });
         return root;
     }
-
+    //Method to add an item
+    //Creates a dialog to add an item
     public void addItem(){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater inflat = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);;
@@ -120,11 +114,11 @@ public class ShareFragment extends Fragment
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
+    //Method to format text
     public String formatText(String name){
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
-
+    //Method for the search view
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.main, menu);
@@ -167,12 +161,12 @@ public class ShareFragment extends Fragment
             }
         });
     }
-
+    //Delete item
     public void deleteItem(){
         sortView(false, "");
     }
 
-    //Method that opens link shop activity from the card adapter
+    //Method that recieves an item from adapter to be added
     public void sendItem(int quantity, int id, String name){
         searchView.clearFocus();
         searchView.setQuery("", true);
@@ -180,7 +174,7 @@ public class ShareFragment extends Fragment
         ItemList item = new ItemList(quantity, id, shopID);
         int values[] = dataBase.checkItemListExist(item.getItemID(), item.getShoppingListID());
         if(values[0] == 0){
-            if(!dataBase.saveListItem(item)){
+            if(!dataBase.saveListItem(item)){           //Add
                 Toast.makeText(getContext(), name + " not added!", Toast.LENGTH_SHORT).show();
             }
             else {
@@ -191,30 +185,17 @@ public class ShareFragment extends Fragment
             }
         }
         else {
-            item.setItemListID(values[0]);
+            item.setItemListID(values[0]);                      //Update
             item.setQuantity(item.getQuantity() + values[1]);
             if (dataBase.updateListItem(item)) {
                 Toast.makeText(getContext(), name + " updated!", Toast.LENGTH_SHORT).show();
             }
         }
-        //getActivity().getFragmentManager().popBackStack();
-/*        Intent intent = new Intent();
-        intent.putExtra("itemID", id);
-        setResult(RESULT_OK, intent);
-        finish();*/
     }
-
-/*    @Override
-    public void onBackPressed() {
-        Log.d("CDA", "onBackPressed Called");
-*//*        Intent intent = new Intent();
-        setResult(RESULT_CANCELED, intent);
-        finish();*//*
-    }*/
-
+    //Method to check last location of shopping list
     public void checkLastLocation(int itemID){
         int lastLocationID = dataBase.getShopList(shopID).getLastLocationID();
-        if (lastLocationID != 0) {
+        if (lastLocationID != 0) {                                              //If location is not found
             if (!dataBase.checkListIsGeofenced(shopID) && (dataBase.getLocation(lastLocationID).getLocationID() != -1)) {
                 autoGeofenceHistory(dataBase.getLocation(lastLocationID), true);
             }
@@ -227,8 +208,7 @@ public class ShareFragment extends Fragment
             }
         }
     }
-
-
+    //Method that displays a dialog asking if user wants to link last linked location
     public void autoGeofenceHistory(final Location location, boolean lastLocation){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         String previous = lastLocation ? " previous" : "";
@@ -260,7 +240,7 @@ public class ShareFragment extends Fragment
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
+    //Method to show error message dialog
     public void showError(String message, Context context){
         AlertDialog.Builder builder = new AlertDialog.Builder(context); //Alerting user that the location is already linked
 
@@ -275,12 +255,10 @@ public class ShareFragment extends Fragment
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
+    //Method to load list and sort
     public void sortView(boolean search, String searchText){
-
         if(search){
             list = searchList;
-
             if(list.size() < 1){
                 Item item = new Item("Tap here to add");
                 item.setAddItem(true);
@@ -288,14 +266,9 @@ public class ShareFragment extends Fragment
             }
         }
         else{
-
-            // Creating our custom adapter
             list = dataBase.retrieveItemsSorted();
         }
-
         ItemViewAdapter adapter = new ItemViewAdapter(getActivity(), list, searchText, this);
-
-        // Create the list view and bind the adapter
         listView.setAdapter(adapter);
     }
 }

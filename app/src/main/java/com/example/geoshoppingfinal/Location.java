@@ -1,13 +1,17 @@
 package com.example.geoshoppingfinal;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Location class to store location information
 public class Location {
-    private String name;
-    private double latitude;
-    private double longitude;
-    private boolean geofenced;
-    private int locationID;
-    private int shoppingListID;              //Shop tied to location for geofence
-
+    //Declaration and Initialisation
+    private String name;                    //Location name
+    private double latitude;                //Latitude
+    private double longitude;               //Longitude
+    private boolean geofenced;              //Location is geofenced
+    private int locationID;                 //Location id
+    private int shoppingListID;             //Shop tied to location for geofence
+    //Default constructor
     public Location(){
         this.setGeofenced(false);
         this.setLocationID(-1);
@@ -20,7 +24,7 @@ public class Location {
         this.setGeofenced(false);
         this.setLocationID(-1);
     }
-
+    //Getters and setters
     public String getName() {
         return name;
     }

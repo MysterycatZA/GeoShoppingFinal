@@ -10,21 +10,24 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//This class handles all database transactions for the app to the SQLite database
 public class DataBase {
+    //Declaration and Initialisation
+    private Context context;                //Context
+    private SQLiteDatabase db;              //SQLite database
+    public DataBaseHelper helper;           //Database helper
 
-    private Context context;
-    private SQLiteDatabase db;
-    public DataBaseHelper helper;
 
-
-    // INITIALIZE DB HELPER AND PASS IT A CONTEXT
+    // Initialise Context and helper
     public DataBase(Context context) {
         this.context = context;
         this.helper = new DataBaseHelper(context);
     }
 
-    //DELETE FROM DATABASE
+    //Delete history of item
     public boolean deleteHistoryItemID(int itemID){
         try{
             db = helper.getWritableDatabase();
@@ -42,7 +45,7 @@ public class DataBase {
         return false;
     }
 
-    //DELETE FROM DATABASE
+    //Delete history of location
     public boolean deleteHistoryLocationID(int locationID){
         try{
             db = helper.getWritableDatabase();
@@ -60,7 +63,7 @@ public class DataBase {
         return false;
     }
 
-    //SAVE Location TO DB
+    //Save history of item based off its location and shopping list
     public boolean saveHistory(int shopID, int locationID) {
         try {
 
@@ -95,7 +98,7 @@ public class DataBase {
 
         return false;
     }
-
+    //Get the items lists that an item is linked to
     public String getLinkedItemListNames(int itemID){
         String listNames = "";
         try {
@@ -121,7 +124,7 @@ public class DataBase {
 
         return listNames;
     }
-
+    //Get the locational history of an item
     public int getItemLocationHistory(int itemID){
         int locationID = - 1;
         boolean found = false;
@@ -144,7 +147,7 @@ public class DataBase {
 
         return locationID;
     }
-
+    //GEt item list count based off shopping list id
     public int getItemListCount(int shopID){
         int count = 0;
         try {
@@ -164,7 +167,7 @@ public class DataBase {
 
         return count;
     }
-
+    //GEt item history count
     public int getItemHistoryCount(int itemID, int locationID){
         int count = 0;
         try {
@@ -184,7 +187,7 @@ public class DataBase {
 
         return count;
     }
-
+    //Setup item list
     public void setupItem(){
         try {
             db = helper.getWritableDatabase();
@@ -225,7 +228,7 @@ public class DataBase {
         }
     }
 
-    //UPDATE Location
+    //Update Location
     public boolean updateLocation(Location location){
         try{
             db = helper.getWritableDatabase();
@@ -250,7 +253,7 @@ public class DataBase {
         }
         return false;
     }
-
+    //Check if shopping list is already geofenced
     public boolean checkListIsGeofenced(int shopID){
         boolean geofenced = false;
         try {
@@ -270,7 +273,7 @@ public class DataBase {
 
         return geofenced;
     }
-
+    //GEt shoppping list off id
     public ShoppingList getShopList(int shopID){
         ShoppingList shoppingList = new ShoppingList();
 
@@ -299,49 +302,7 @@ public class DataBase {
         return shoppingList;
     }
 
-    public int getShopListID(int locationID){
-        int shopID = 0;
-        try {
-            db = helper.getWritableDatabase();
-
-            Cursor cursor = db.rawQuery("SELECT shopID FROM Location where id = " + locationID,null);
-
-            while (cursor.moveToNext())
-            {
-                shopID = cursor.getInt(0);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            helper.close();
-        }
-
-        return shopID;
-    }
-
-    public String getLocationName(int locationID){
-        String name = "";
-        try {
-            db = helper.getWritableDatabase();
-
-            Cursor cursor = db.rawQuery("SELECT name FROM Location where id = " + locationID,null);
-
-            while (cursor.moveToNext())
-            {
-                name = cursor.getString(0);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            helper.close();
-        }
-
-        return name;
-    }
-
-    //DELETE FROM DATABASE
+    //Delete location
     public boolean deleteLocation(Location location){
         try{
             db = helper.getWritableDatabase();
@@ -359,7 +320,7 @@ public class DataBase {
         return false;
     }
 
-    //SAVE Location TO DB
+    //Save location
     public int saveLocation(Location location) {
         try {
             db = helper.getWritableDatabase();
@@ -384,15 +345,12 @@ public class DataBase {
 
         return 0;
     }
-
+    //Check if location exists
     public boolean checkLocationExist(Location location){
         try {
             db = helper.getWritableDatabase();
             String []columns = {"id", "name"};
             String []selectionArgs = {location.getName() + "%"};
-            //db.query("Location", columns,"name LIKE ?",selectionArgs,null,null,null);
-            //Cursor cursor = db.rawQuery("SELECT * FROM Location Where name like '" + location.getName() + "'",null);
-            //if(db.query("Location", new String[] {"id","name"},"name LIKE '?'", new String[]{location.getName()+"%"}, null, null, null).getCount() > 0){
             if(db.query(context.getString(R.string.LOCATION_TABLE), columns,"name LIKE ?",selectionArgs,null,null,null).getCount() > 0){
                 return true;
             }
@@ -404,29 +362,6 @@ public class DataBase {
         }
 
         return false;
-    }
-
-    public int retrieveLocationID(Location location){
-        int id = 0;
-        try {
-            db = helper.getWritableDatabase();
-            String []columns = {"id", "name"};
-            String []selectionArgs = {location.getName() + "%"};
-            Cursor cursor = db.query(context.getString(R.string.LOCATION_TABLE), columns,"name LIKE ?",selectionArgs,null,null,null);
-            //Cursor cursor = db.query("Location", new String[] {"id","name"},"name LIKE '?'", new String[]{location.getName()+"%"}, null, null, null);
-            while (cursor.moveToNext())
-            {
-                id = cursor.getInt(0);
-
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            helper.close();
-        }
-
-        return id;
     }
 
     //Relieving locations from the SQLlite Database
@@ -505,29 +440,7 @@ public class DataBase {
         return arrayList;
     }
 
-    //UPDATE Item
-    public boolean updateItem(Item item){
-        try{
-            db = helper.getWritableDatabase();
-
-            ContentValues values = new ContentValues();
-            values.put("name", item.getName());
-
-            int result = db.update(context.getString(R.string.ITEM_TABLE), values, "id = ?", new String[] { String.valueOf(item.getItemID()) });
-
-            if (result > 0) {
-                return true;
-            }
-
-        }catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            helper.close();
-        }
-        return false;
-    }
-
-    //DELETE FROM DATABASE
+    //Delete item
     public boolean deleteItem(Item item){
         try{
             db = helper.getWritableDatabase();
@@ -545,7 +458,7 @@ public class DataBase {
         return false;
     }
 
-    //SAVE DATA TO DB
+    //Save item
     public int saveItem(Item item) {
         try {
             db = helper.getWritableDatabase();
@@ -566,7 +479,7 @@ public class DataBase {
 
         return 0;
     }
-
+    //Check item exists
     public boolean checkItemExist(String name){
         try {
             db = helper.getWritableDatabase();
@@ -584,7 +497,7 @@ public class DataBase {
 
         return false;
     }
-
+    //Check if shopping list exists
     public boolean checkShoppingListExist(String name){
         try {
             db = helper.getWritableDatabase();
@@ -603,7 +516,7 @@ public class DataBase {
         return false;
     }
 
-    //Relieving items from the SQLlite Database
+    //Relieving items from the SQLlite Database code based off https://codetheory.in/android-dividing-listview-sections-group-headers/
     public ArrayList<Item> retrieveItemsSorted() {
 
         ArrayList<Item> items = new ArrayList<>();
@@ -707,7 +620,7 @@ public class DataBase {
         return arrayList;
     }
 
-    //UPDATE Item
+    //Update shopping list
     public boolean updateShopList(ShoppingList item){
         try{
             db = helper.getWritableDatabase();
@@ -730,7 +643,7 @@ public class DataBase {
         return false;
     }
 
-    //DELETE FROM DATABASE
+    //Delete shopping list
     public boolean deleteShopList(ShoppingList item){
         try{
             db = helper.getWritableDatabase();
@@ -748,7 +661,7 @@ public class DataBase {
         return false;
     }
 
-    //SAVE DATA TO DB
+    //Save shopping list
     public int saveShopList(ShoppingList item) {
         try {
             db = helper.getWritableDatabase();
@@ -827,7 +740,7 @@ public class DataBase {
 
         return arrayList;
     }
-
+    //Check if item list exists
     public int[] checkItemListExist(int itemID, int shopID){
         int[] values = new int[2];
         try {
@@ -850,7 +763,7 @@ public class DataBase {
         return values;
     }
 
-    //UPDATE Item
+    //Update Item list
     public boolean updateListItem(ItemList item){
         try{
             db = helper.getWritableDatabase();
@@ -873,7 +786,7 @@ public class DataBase {
         return false;
     }
 
-    //DELETE FROM DATABASE
+    //Delete linked item to list
     public boolean deleteLinkedItemToList(int itemID){
         try{
             db = helper.getWritableDatabase();
@@ -891,7 +804,7 @@ public class DataBase {
         return false;
     }
 
-    //DELETE FROM DATABASE
+    //Delete linked shopping list
     public boolean deleteLinkedShopToList(int shopID){
         try{
             db = helper.getWritableDatabase();
@@ -908,7 +821,7 @@ public class DataBase {
         }
         return false;
     }
-
+    //Check for linked shopping list
     public int checkForlinkShoppingList(int shopID){
         int locationID = 0;
         try{
@@ -927,7 +840,7 @@ public class DataBase {
         }
         return locationID;
     }
-
+    //Get total list count
     public int getTotalListItems(int shopID){
         int count = 0;
         try {
@@ -949,7 +862,7 @@ public class DataBase {
         return count;
 
     }
-
+    //Get bought count
     public int getBoughtCount(int shopID){
         int count = 0;
         try {
@@ -973,7 +886,7 @@ public class DataBase {
 
         return count;
     }
-
+    //Get suggested items
     public ArrayList<Item> getSuggestedItems(int shopID){
         ArrayList<Item> items = new ArrayList<>();
         Item item;
@@ -1003,7 +916,7 @@ public class DataBase {
     }
 
 
-    //DELETE FROM DATABASE
+    //Delete item list
     public boolean deleteListItem(ItemList item){
         try{
             db = helper.getWritableDatabase();
@@ -1025,7 +938,7 @@ public class DataBase {
         return false;
     }
 
-    //SAVE DATA TO DB
+    //Save item list
     public boolean saveListItem(ItemList item) {
         try {
             db = helper.getWritableDatabase();

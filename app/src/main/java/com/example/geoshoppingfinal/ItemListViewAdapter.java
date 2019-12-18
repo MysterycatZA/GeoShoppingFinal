@@ -27,9 +27,9 @@ import androidx.appcompat.app.AlertDialog;
 public class ItemListViewAdapter extends BaseAdapter {
     //Declaration and Initialisation
     private ArrayList<ItemList> data;                       //Array list of items
-    private Context context;                            //Context of passed activity
-    private static LayoutInflater inflater = null;         //Layout inflater
-    private DataBase dataBase;
+    private Context context;                                //Context of passed activity
+    private static LayoutInflater inflater = null;          //Layout inflater
+    private DataBase dataBase;                              //Database
     //Constructor
     public ItemListViewAdapter(Context context, ArrayList<ItemList> data) {
         this.context = context;
@@ -39,7 +39,7 @@ public class ItemListViewAdapter extends BaseAdapter {
         inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
-
+    //Method to sort via boolean based off https://stackoverflow.com/questions/28002342/sort-an-arraylist-by-primitive-boolean-type
     private void sortChecked(){
         Collections.sort(data, new Comparator<ItemList>() {
             @Override
@@ -49,14 +49,14 @@ public class ItemListViewAdapter extends BaseAdapter {
         });
         addSeparator();
     }
-
+    //Method to reset view
     private void resetView(){
         removeSeparator();
         removeClear();
         sortChecked();
         notifyDataSetChanged();
     }
-
+    //Method to remove clear bought item
     private void removeClear(){
         boolean found = false;
         int index = 0;
@@ -68,7 +68,7 @@ public class ItemListViewAdapter extends BaseAdapter {
             index++;
         }
     }
-
+    //Method to remove seperator item
     private void removeSeparator(){
         boolean found = false;
         int index = 0;
@@ -80,7 +80,7 @@ public class ItemListViewAdapter extends BaseAdapter {
             index++;
         }
     }
-
+    //Method to add separator item
     private void addSeparator(){
         boolean found = false;
         int index = 0;
@@ -214,9 +214,6 @@ public class ItemListViewAdapter extends BaseAdapter {
                         // set cheek mark drawable and set total property to false
                         item.setBought(false);
                         if (dataBase.updateListItem(item)) {
-/*                            simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_off_holo);
-                            simpleCheckedTextView.setChecked(false);
-                            simpleCheckedTextView.setPaintFlags(simpleCheckedTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));*/
                             data.get(position).setBought(false);
                             resetView();
                         }
@@ -224,9 +221,6 @@ public class ItemListViewAdapter extends BaseAdapter {
                         // set cheek mark drawable and set total property to true
                         item.setBought(true);
                         if (dataBase.updateListItem(item)) {
-/*                            simpleCheckedTextView.setCheckMarkDrawable(R.drawable.btn_check_on_holo);
-                            simpleCheckedTextView.setChecked(true);
-                            simpleCheckedTextView.setPaintFlags(simpleCheckedTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);*/
                             data.get(position).setBought(true);
                             resetView();
 
@@ -263,7 +257,7 @@ public class ItemListViewAdapter extends BaseAdapter {
         }
         return view;
     }
-
+    //MEthod to display dialog to edit item
     public void editItem(final int position){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflat = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);;

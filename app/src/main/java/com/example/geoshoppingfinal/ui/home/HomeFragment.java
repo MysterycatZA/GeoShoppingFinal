@@ -19,30 +19,31 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.geoshoppingfinal.DataBase;
 import com.example.geoshoppingfinal.MainActivity;
-import com.example.geoshoppingfinal.MainViewModel;
 import com.example.geoshoppingfinal.R;
 import com.example.geoshoppingfinal.ShoppingList;
 import com.example.geoshoppingfinal.ShoppingListViewAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
-
+/**
+ * Created by Luke Shaw 17072613
+ */
+//Fragment to display home screen
 public class HomeFragment extends Fragment {
-
-    private RecyclerView recyclerView;                                  //Recycle view for card view
+    //Declaration and Initialisation
+    private RecyclerView recyclerView;                                 //Recycle view for card view
     private RecyclerView.Adapter adapter;                              //Adapter for card view
-    private RecyclerView.LayoutManager mLayoutManager;                  //Layout manager for card view
-    private ArrayList<ShoppingList> list;
-    private View root;
-    private MainViewModel mainViewModel;
-    private TextView emptyView;
-    private DataBase dataBase;
+    private RecyclerView.LayoutManager mLayoutManager;                 //Layout manager for card view
+    private ArrayList<ShoppingList> list;                              //Array for shopping list
+    private View root;                                                 //View
+    private TextView emptyView;                                        //Empty list message
+    private DataBase dataBase;                                         //Database
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
+    //Creating view
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -65,9 +66,10 @@ public class HomeFragment extends Fragment {
 
         return root;
     }
-
+    //Method to add shopping list
+    //Creates a dialog to add a shopping list
     private void addShopList(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());    //Creating dialog
         builder.setTitle("Add Shop List");
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View myView = inflater.inflate(R.layout.dialog_add_shop_list, null);
@@ -90,7 +92,7 @@ public class HomeFragment extends Fragment {
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
+            public void onClick(DialogInterface dialog, int id) {       //No
                 // User cancelled the dialog
                 dialog.dismiss();
             }
@@ -111,10 +113,10 @@ public class HomeFragment extends Fragment {
             }
         });
     }
-
+    //Method to load all the data needed to display shopping list
     private void loadData(int sort) {
         list = dataBase.retrieveShopList();
-        if (list.isEmpty()) {
+        if (list.isEmpty()) {                       //DIsplay empty message when no shopping list items
             recyclerView.setVisibility(View.GONE);
             emptyView.setVisibility(View.VISIBLE);
         }
@@ -123,7 +125,7 @@ public class HomeFragment extends Fragment {
             emptyView.setVisibility(View.GONE);
         }
         adapter = new ShoppingListViewAdapter(getContext(), list);             //List view displaying items
-        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() { //Code to hide recycle view when no shopping list items
 
             @Override
             public void onChanged() {
